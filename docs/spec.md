@@ -34,7 +34,7 @@ The `encounter → combat` handoff block is the *only* machine-readable contract
 
 ### The command/observation loop
 
-The engine's shape is already the agent loop's shape (osrlib's own `llm-referees.md` says so): typed commands in, typed events out, a full-knowledge view to observe. The play loop, mirroring the proven Ironsworn `play` house pattern (`fiction → trigger → move → roll → outcome → fiction`):
+The engine's shape is already the agent loop's shape (osrlib's own `llm-referees.md` says so): typed commands in, typed events out, a full-knowledge view to observe. The play loop, in OSE terms — player intent in, engine events out, fiction around them:
 
 ```
 player describes action
@@ -109,7 +109,7 @@ osrlib-referee/                      (git repo; also the plugin root)
 
 Rationale:
 
-- The server is a *real* Python package (deps: `osrlib` from PyPI, an MCP SDK), unlike `bx-referee`/`ironsworn-referee`'s single-file PEP-723 scripts. It wants a `pyproject.toml`, `uv.lock`, tests, and CI. Wedging that into `osr-plugins/plugins/` — which has no Python packaging setup — is architecturally awkward.
+- The server is a *real* Python package (deps: `osrlib` from PyPI, an MCP SDK), unlike `bx-referee`'s single-file PEP-723 scripts. It wants a `pyproject.toml`, `uv.lock`, tests, and CI. Wedging that into `osr-plugins/plugins/` — which has no Python packaging setup — is architecturally awkward.
 - A sibling to `osrlib` benefits from the same discipline (phase plans, rubber-duck reviews, golden tests, tag-driven release) that AGENTS.md codifies. A standalone repo gives it room to have that.
 - `bx-referee` stays pristine — it's a different repo entirely, no risk of collision.
 - Distribution still works: `osr-plugins`'s `marketplace.json` can list it as an external plugin `source` (git URL), or it's installed directly with `claude --plugin-dir ~/repos/osrlib-referee`. Either way the `.mcp.json` + `${CLAUDE_PLUGIN_ROOT}` mechanism is identical.
@@ -151,16 +151,16 @@ Each phase ships as a plan then an implementation, both run through the create �
 
 Definition of done: one small **openly-licensed or original-authored** module (not a commercial one — see licensing) compiles and is playable end-to-end, with a documented list of what was approximated or pushed to the authorial escape hatch.
 
-**Phase 3 — skill-graph parity and polish.** Fill in the rest of `bx-referee`'s surface on the new substrate: character creation via `create_character` (deterministic, seeded), town/economy commands, level-up (engine-owned via `AwardXP`/advancement), save/resume, and a session audit/roll-log skill. Reconcile the skill graph so it reads like `ironsworn-referee`'s (a `referee` orchestrator, a `play` loop that owns encounter/battle lifecycles, a `session` skill for save/audit). Definition of done: feature parity with `bx-referee` for native + compiled content.
+**Phase 3 — skill-graph parity and polish.** Fill in the rest of `bx-referee`'s surface on the new substrate: character creation via `create_character` (deterministic, seeded), town/economy commands, level-up (engine-owned via `AwardXP`/advancement), save/resume, and a session audit/roll-log skill. Reconcile the skill graph into a clean shape: a `referee` orchestrator, a `play` loop that owns the encounter and battle lifecycles, and a `session` skill for save/audit. Definition of done: feature parity with `bx-referee` for native + compiled content.
 
 **Phase 4 (optional) — the eval harness.** Lean on determinism: record seed + command log per session, replay offline to score trajectories, regression-test prompt changes against fixed seeds. This is the payoff osrlib's design was built for and `bx-referee` can't offer.
 
 ## Skill layer design
 
-Mirror the `ironsworn-referee` house pattern, which already proves "LLM narrates, deterministic engine does mechanics":
+The skill layer follows osrlib's own LLM-referee doctrine — the deterministic engine does the mechanics, the LLM narrates — with OSE voice and conventions borrowed from `bx-referee`:
 
 - A **constitution** (behavioral contract): the engine is the source of truth (never invent a roll or a stat); the player owns mechanical choices (present options, wait — never auto-pick, never auto-burn analog); no silent state changes (every `execute` is the audit trail); information discipline (strip referee-visibility data before narrating — the `observe` projection carries it, the fiction must not leak it).
-- A **`play` loop** owning the encounter and battle lifecycles (as Ironsworn's `play` owns journeys and fights), so there is no separate combat skill re-deriving anything — combat is `ResolveBattleRound` with the player's declarations, and the engine's **default monster action policy resolves the enemy side**, so the LLM declares only the party's actions. The ~4,000-token combat setup is gone; the per-round monster reasoning is gone too.
+- A **`play` loop** owning the encounter and battle lifecycles, so there is no separate combat skill re-deriving anything — combat is `ResolveBattleRound` with the player's declarations, and the engine's **default monster action policy resolves the enemy side**, so the LLM declares only the party's actions. The ~4,000-token combat setup is gone; the per-round monster reasoning is gone too.
 - State updates are no longer "Read → edit Markdown → Write." State lives in the engine; the skills read `observe` and narrate. The Markdown state files (`PARTY.md` etc.) disappear as canonical stores — at most an optional human-readable session journal remains.
 
 ## Risks and open questions

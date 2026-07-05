@@ -6,7 +6,11 @@ osrlib-referee is an MCP-enabled B/X tabletop RPG referee. A stdio MCP server ho
 
 - `docs/spec.md` is the single source of truth. Read it before any implementation work. It is decision-complete: architecture, the MCP tool surface, cross-cutting concerns, a phased roadmap, and pinned decisions. Build in phase order — **Phase 0 first** (it retires the MCP-packaging/PATH risk before any game code).
 - The engine is `osrlib` (source at `~/repos/osrlib-python`, published on PyPI as `osrlib`). Its own `AGENTS.md`, `docs/`, and source are authoritative for engine behavior. When a question is about a command, event, view, the content model, or determinism, **read osrlib's source/docs rather than working from memory.** Do not edit osrlib from this repo — engine changes (notably the Phase 2a injectable-catalog work) land as their own PRs in the osrlib repo.
-- `bx-referee` and `ironsworn-referee` (in `~/repos/osr-plugins`) are the house patterns for skill authoring. Mirror their voice and structure: a behavioral constitution plus a `play` loop that owns the encounter and battle lifecycles.
+- `bx-referee` (in `~/repos/osr-plugins`) is the house reference for OSE skill-authoring voice and conventions — a behavioral constitution, information discipline, the game-directory layout. Mirror its style, but mind the architectural inversion: `bx-referee` makes the LLM the rules authority, whereas here the engine is. The "engine owns mechanics, LLM narrates" split comes from osrlib's own design (`llm-referees.md`), not from another plugin.
+
+## Scope
+
+**OSE / B/X only.** osrlib implements the Old-School Essentials (B/X) rules and nothing else, and so does this project. Do not add abstraction layers, configuration, or skills aimed at supporting other rulesets — cross-ruleset generality is out of scope and pure overhead here. Build directly against osrlib's OSE model; do not design for a hypothetical second system.
 
 ## Repository layout
 
