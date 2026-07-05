@@ -4,8 +4,10 @@ osrlib-referee is an MCP-enabled B/X tabletop RPG referee. A stdio MCP server ho
 
 ## Start here
 
-- `docs/spec.md` is the single source of truth. Read it before any implementation work. It is decision-complete: architecture, the MCP tool surface, cross-cutting concerns, a phased roadmap, and pinned decisions. Build in phase order — **Phase 0 first** (it retires the MCP-packaging/PATH risk before any game code).
-- The engine is `osrlib` (source at `~/repos/osrlib-python`, published on PyPI as `osrlib`). Its own `AGENTS.md`, `docs/`, and source are authoritative for engine behavior. When a question is about a command, event, view, the content model, or determinism, **read osrlib's source/docs rather than working from memory.** Do not edit osrlib from this repo — engine changes (notably the Phase 2a injectable-catalog work) land as their own PRs in the osrlib repo.
+**This guide is durable; the spec is not.** `AGENTS.md` is how we work in this repo, and it outlives any single spec. `docs/spec.md` is the *current* source of truth for **what** to build — a decision-complete design and phased roadmap — but it is a phase-of-life artifact that will be superseded. So this guide points at the current spec instead of restating it: read the spec, build in the order it lays out, and treat its invariants as binding — but do not expect design details, invariants, or phase specifics to be duplicated here, because they would rot the moment the spec turns over.
+
+- **Read `docs/spec.md` first** for the architecture, the tool surface, the invariants, the roadmap, and the pinned decisions. It is the design authority.
+- The engine is `osrlib` (source at `~/repos/osrlib-python`, published on PyPI as `osrlib`). Its own `AGENTS.md`, `docs/`, and source are authoritative for engine behavior. When a question is about a command, event, view, the content model, or determinism, **read osrlib's source/docs rather than working from memory.** Do not edit osrlib from this repo — engine changes land as their own PRs in the osrlib repo, and honor osrlib's contracts there: its frozen public API, `schema_version` additivity, and the determinism/replay guarantee.
 - `bx-referee` (in `~/repos/osr-plugins`) is the house reference for OSE skill-authoring voice and conventions — a behavioral constitution, information discipline, the game-directory layout. Mirror its style, but mind the architectural inversion: `bx-referee` makes the LLM the rules authority, whereas here the engine is. The "engine owns mechanics, LLM narrates" split comes from osrlib's own design (`llm-referees.md`), not from another plugin.
 
 ## Scope
@@ -17,7 +19,7 @@ osrlib-referee is an MCP-enabled B/X tabletop RPG referee. A stdio MCP server ho
 - Plugin root: `.claude-plugin/plugin.json` + `.mcp.json` (launches the bundled server via `${CLAUDE_PLUGIN_ROOT}`, stdio transport) + `skills/`.
 - `server/` — the MCP server, a self-contained `uv` project (`pyproject.toml`, `uv.lock`, `src/`, `tests/`). Depends on `osrlib` and an MCP SDK.
 - `adventures/` — compiled adventure bundles (an osrlib `Adventure` spec + a prose sidecar). Only openly-licensed or original content is committed here; see Licensing.
-- `docs/` — `spec.md` (source of truth) and, once phases begin, `phase-N-plan.md` documents.
+- `docs/` — the current `spec.md` and, once phases begin, `phase-N-plan.md` documents.
 
 ## Running locally
 
@@ -31,12 +33,12 @@ The moving parts below evolve faster than any training data. **Consult the live 
 
 - **Model Context Protocol** — [modelcontextprotocol.io](https://modelcontextprotocol.io); the dated specification, e.g. [2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25) (confirm it's the latest). The authority for transports, the server/tool interface, and message shapes. Also see the MCP SDK docs for the language you implement the server in.
 - **Agent Skills** — [agentskills.io](https://agentskills.io) and its [specification](https://agentskills.io/specification). The authority for `SKILL.md` frontmatter (`name`, `description`, `allowed-tools`), the directory contract, and progressive disclosure.
-- **Claude Code plugins & MCP** — the official Claude Code documentation (docs.claude.com / code.claude.com) for how a plugin bundles an MCP server: the `.mcp.json` manifest shape, `${CLAUDE_PLUGIN_ROOT}`, stdio transport, and the `mcp__plugin_<plugin>_<server>__<tool>` tool-name format that a skill's `allowed-tools` must match. The Phase 0 packaging/PATH spike depends on getting these current, not remembered.
+- **Claude Code plugins & MCP** — the official Claude Code documentation (docs.claude.com / code.claude.com) for how a plugin bundles an MCP server: the `.mcp.json` manifest shape, `${CLAUDE_PLUGIN_ROOT}`, stdio transport, and the `mcp__plugin_<plugin>_<server>__<tool>` tool-name format that a skill's `allowed-tools` must match. Getting the plugin-bundled-server packaging right depends on these being current, not remembered.
 - **osrlib** — the engine's own docs ([mmacy.github.io/osrlib-python](https://mmacy.github.io/osrlib-python)) and source (`~/repos/osrlib-python`: `AGENTS.md`, `docs/`, `src/`) are authoritative for the command/event/view API, the content model, and determinism. Prefer reading its source over inferring behavior.
 
 ## The phase loop
 
-Each roadmap phase in `docs/spec.md` ships as two PRs — a plan, then an implementation — and both follow the same create → rubber-duck → revise-until-solid → PR loop.
+Each roadmap phase in the current spec ships as two PRs — a plan, then an implementation — and both follow the same create → rubber-duck → revise-until-solid → PR loop.
 
 ### Planning a phase
 
@@ -59,20 +61,6 @@ Spawn a fresh subagent as a skeptical senior reviewer. Give it an ordered readin
 - Type hints use built-in generics (`list[str]`, `dict[str, int]`). Do not import `List`/`Dict`/`Tuple` from `typing`, and do not use `from __future__ import annotations`.
 - Docstrings are Google style, written in Markdown, max line length 120.
 - Markdown: blank lines around headings, lists, code blocks, and tables; sentence-case headings; no `---` dividers.
-
-## Design invariants (from the spec)
-
-- **The engine is the source of truth.** Skills never invent a roll, a stat, or an outcome. Every state change goes through `execute()`; narration renders from the returned events (`format_message`, or event codes plus fields), never from the model's own bookkeeping.
-- **One `execute` tool over the `AnyCommand` union**, not 44 separate tools. Plus a scoped `observe` (a current-state snapshot — never the raw `RefereeView`, which is the whole save document including the full event log) and `prose(area_id)` for authored read-aloud text.
-- **The engine's default monster action policy resolves the enemy side of combat**; skills declare only the party's actions in `ResolveBattleRound`.
-- **Authorial commands** (`SetFlag`, `SpawnMonsters`, `SpawnNpcParty`, `GrantItem`, `GrantCoins`, `AwardXP`, `SetDoorState`, `PlaceParty`, `AdvanceTime`) are the sanctioned escape hatch for freeform play the content model can't express: adjudicate the outcome in fiction, then commit it to authoritative state.
-- **The player owns mechanical choices.** Present options and wait; never auto-pick.
-- **Information discipline.** The `observe` projection carries referee-visibility data (monster HP, hidden rolls); the fiction must not leak it. This is prompt-enforced, not a structural wire boundary — the referee agent is trusted.
-- **Saves are durable in the user's game directory** (`~/osr-games/…`), never the plugin cache. The in-memory example store from osrlib's FastAPI example is not inherited.
-
-## Determinism and eval
-
-osrlib guarantees seed + accepted command log ⇒ byte-identical game (under an identical engine version). Preserve that property: record the seed and the command log per session so trajectories can be replayed offline to score runs and regression-test prompt changes. Honor osrlib's contracts — its frozen public API, `schema_version` additivity, and the determinism/replay guarantee.
 
 ## Greenfield discipline
 
