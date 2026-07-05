@@ -133,7 +133,7 @@ Three things thread through every phase and must not be inherited by accident fr
 
 **Version handshake, migration, and error mapping.** osrlib stamps every document with `schema_version` and `engine_version` (`session.metadata`) and raises typed `OsrlibError`s — `ContentValidationError` (malformed content), `SaveVersionError` (a save newer than this engine), `ReplayVersionError`. When the bundled `osrlib` is upgraded, loading an older save runs the migration chain; a *newer* save raises `SaveVersionError`. The MCP boundary must map these deliberately, exactly as the FastAPI status map does: an in-fiction command **rejection** is a normal tool *result* (`accepted:false` + code), while an out-of-fiction `OsrlibError` is a tool *error* the skill surfaces to the player as "this save is from a newer engine" rather than a stack trace. Pin the bundled osrlib version and treat an upgrade as a migration event.
 
-**Licensing.** Two boundaries. (a) The new repo's own license: it depends on osrlib (MIT code, OGL-derived SRD data) and re-implements a referee — code under a permissive license, any bundled SRD-derived data under OGL, mirroring how `osr-plugins` and osrlib both partition this. (b) **Module-compilation licensing is a real constraint, not just transcription.** The OSE SRD is Open Game Content, but most *published commercial modules* are not. Compiling one into an adventure bundle — especially the prose sidecar with verbatim read-aloud text — and committing it to a repo is a copyright problem. Constraint: compiled bundles for non-open modules stay **local/private to the user's game directory**; only OGL/CC-licensed or original-authored modules ship in the repo. The compiler skill writes bundles into the game directory by default, not the plugin.
+**Licensing.** (a) The project's own license: code, skills, prompts, docs, and compiled *original* content are dedicated to the public domain under **CC0 1.0 Universal** (`LICENSE`). `osrlib`, the engine, is likewise CC0, so there is no internal code/data license boundary to police. (b) **Module-compilation licensing is a real, separate constraint** — about third-party content, not this repo's own license. The OSE SRD is openly licensed, but most *published commercial modules* are not. Compiling one into an adventure bundle — especially the prose sidecar with verbatim read-aloud text — and committing it to a repo is a copyright problem. Constraint: compiled bundles for non-open modules stay **local/private to the user's game directory**; only OGL/CC-licensed or original-authored modules ship in the repo. The compiler skill writes bundles into the game directory by default, not the plugin.
 
 ## Phased roadmap
 
@@ -182,7 +182,7 @@ Mirror the `ironsworn-referee` house pattern, which already proves "LLM narrates
 - Content ingestion is Phase 2; the architecture is proven on native content in Phase 1 first.
 - The engine's default monster action policy resolves the enemy side of combat; the LLM declares only party actions.
 - Authorial commands are the sanctioned escape hatch for anything the content model can't express.
-- Compiled bundles for non-open modules stay private to the game directory; only OGL/CC/original modules ship in the repo.
+- Compiled bundles for non-open modules stay private to the game directory; only openly-licensed or original-authored modules ship in the repo.
 
 ## Resolved decisions
 
