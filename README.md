@@ -15,3 +15,7 @@ Planning. The decision-complete design and phased roadmap live in [`docs/spec.md
 - Published-module content is compiled into an "adventure bundle" — an `osrlib` `Adventure` spec plus a prose sidecar for the authored read-aloud text the engine has no place for.
 
 See the spec for the architecture, the token-efficiency thesis, the content-ingestion strategy, and the licensing boundaries.
+
+## License
+
+Dedicated to the public domain under [CC0 1.0 Universal](LICENSE).

@@ -21,6 +21,15 @@ osrlib-referee is an MCP-enabled B/X tabletop RPG referee. A stdio MCP server ho
 claude --plugin-dir .
 ```
 
+## Authoritative references
+
+The moving parts below evolve faster than any training data. **Consult the live specifications — do not rely on memory** for wire formats, manifest shapes, or tool-naming rules. Fetch the current version, and where a spec is date- or version-stamped, check for a newer revision before you build against it. These are pointers, not vendored copies; treat them as the source of truth when this guide or the spec disagrees with them on a detail, and reconcile the discrepancy.
+
+- **Model Context Protocol** — [modelcontextprotocol.io](https://modelcontextprotocol.io); the dated specification, e.g. [2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25) (confirm it's the latest). The authority for transports, the server/tool interface, and message shapes. Also see the MCP SDK docs for the language you implement the server in.
+- **Agent Skills** — [agentskills.io](https://agentskills.io) and its [specification](https://agentskills.io/specification). The authority for `SKILL.md` frontmatter (`name`, `description`, `allowed-tools`), the directory contract, and progressive disclosure.
+- **Claude Code plugins & MCP** — the official Claude Code documentation (docs.claude.com / code.claude.com) for how a plugin bundles an MCP server: the `.mcp.json` manifest shape, `${CLAUDE_PLUGIN_ROOT}`, stdio transport, and the `mcp__plugin_<plugin>_<server>__<tool>` tool-name format that a skill's `allowed-tools` must match. The Phase 0 packaging/PATH spike depends on getting these current, not remembered.
+- **osrlib** — the engine's own docs ([mmacy.github.io/osrlib-python](https://mmacy.github.io/osrlib-python)) and source (`~/repos/osrlib-python`: `AGENTS.md`, `docs/`, `src/`) are authoritative for the command/event/view API, the content model, and determinism. Prefer reading its source over inferring behavior.
+
 ## The phase loop
 
 Each roadmap phase in `docs/spec.md` ships as two PRs — a plan, then an implementation — and both follow the same create → rubber-duck → revise-until-solid → PR loop.
@@ -67,5 +76,5 @@ Pre-release: there is no frozen public API here yet, so refactor to the better f
 
 ## Licensing
 
-- Project code (server, skills, compiler) is under a permissive license (MIT-compatible), matching osrlib's code license. Any SRD-derived data vendored into this repo stays Open Game Content under OGL 1.0a; keep code and OGL data separate. (Adding the repo `LICENSE` is a Phase 0 task.)
-- **Module compilation:** the OSE SRD is Open Game Content, but most published commercial modules are not. Compiled adventure bundles — especially the prose sidecar with verbatim read-aloud text — for non-open modules stay **private in the user's game directory** and are never committed. Only OGL/CC-licensed or original-authored modules ship in `adventures/`.
+- The project — code, server, skills, prompts, docs, and compiled *original* content — is dedicated to the public domain under **CC0 1.0 Universal** (see `LICENSE`). The engine it builds on, `osrlib`, is likewise CC0, so there is no code/data license boundary to police within this repo.
+- **Module compilation is a separate, third-party constraint** (nothing to do with this repo's own license): the OSE SRD is openly licensed, but most published commercial modules are not. Compiled adventure bundles — especially the prose sidecar with verbatim read-aloud text — for non-open modules stay **private in the user's game directory** and are never committed. Only openly-licensed or original-authored modules ship in `adventures/`.
