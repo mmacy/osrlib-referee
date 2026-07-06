@@ -79,7 +79,7 @@ A single-file FastMCP server holding one session and exposing one tool.
 
   ```python
   @mcp.tool()
-  def execute(command: dict) -> dict:
+  def execute(command: dict) -> dict[str, object]:
       """Parse one command payload and execute it against the session."""
       parsed = parse_command(command)
       if parsed is None:
@@ -92,6 +92,8 @@ A single-file FastMCP server holding one session and exposing one tool.
           "events": [e.model_dump(mode="json") for e in result.events],
       }
   ```
+
+  **Return annotation correction (found during implementation):** a bare `-> dict` return type gives FastMCP no output schema, so `mcp.types.CallToolResult.structuredContent` comes back `None` — only a JSON-text `content` block round-trips. Confirmed empirically against installed `mcp==1.28.1`: annotating `-> dict[str, object]` makes FastMCP emit an output schema (`{"additionalProperties": true, ...}`) and populate `structuredContent` with the real envelope. Rung 3 (work item 4) asserts on `structuredContent`, so the annotation must be `dict[str, object]`, not the plan's original illustrative `dict`.
 
 - **Dump each rejection and event individually, never the `CommandResult` container.** `CommandResult.events` is declared `tuple[Event, ...]` — the base class — so `result.model_dump(mode="json")` on the whole result serializes only base-class fields (`code`, `visibility`) and drops `event_type` plus every subclass field (`FlagSetEvent`'s `key`/`value`). Per-element `.model_dump(mode="json")` — exactly what the FastAPI example does (`examples/fastapi_crawler/app.py:165`) — preserves them; `model_dump(mode="json", serialize_as_any=True)` is the one-line alternative. This is load-bearing: the entire token thesis is narrating from event fields, so the tool must not lose them.
 - **The argument is a raw `dict`, not the `AnyCommand` union.** Rationale: Phase 0 is a walking skeleton, and the spec pins "measure the union schema's standing per-turn context cost" to Phase 1. Typing the tool with the 45-variant union now would bake that cost in before there is anything to measure it against. The `ping` skill hands the model the literal payload, so no argument schema is needed for the smoke test. Phase 1 owns the union-as-tool-definition decision and its measurement.
@@ -159,6 +161,14 @@ This is the reason Phase 0 exists. Everything above is table-setting for this.
 4. Last resort: publish the server to PyPI and switch `.mcp.json` to `uvx osrlib-referee-mcp`, accepting the publish/release overhead.
 
 **Dev loop before the manual gate:** rungs 1–3 of the test ladder, then an optional interactive `uv run --project server mcp dev src/osrlib_referee_mcp/server.py` (the MCP Inspector) to click the tool before wiring into Claude Code.
+
+**Recorded verdict (2026-07-05):** rung 1 wins, exactly as expected, with no fallback needed.
+
+- `claude --plugin-dir .` from the repo root, prompted headlessly with `/ping` (`claude --plugin-dir . -p "/ping" --output-format stream-json --verbose`), called the tool and returned `{"accepted":true,"rejections":[],"events":[{"code":"session.flag.set","visibility":"referee","event_type":"flag_set","key":"ping","value":true}]}` — the exact envelope the definition of done calls for.
+- **Exact exposed tool name, confirmed from the stream-json transcript's `tool_use` block:** `mcp__plugin_osrlib-referee_osrlib__execute`, character-for-character matching both the prediction and `skills/ping/SKILL.md`'s `allowed-tools` entry. `permission_denials` was empty — the skill's pre-approval worked. Hyphens in the plugin name are preserved, confirmed both against live docs and now empirically.
+- **Cold start, characterized two ways, neither showed a problem:** (a) `server/.venv` removed, warm `uv` package cache — total wall time ~8.9 s, tool available immediately, no race. (b) `server/.venv` removed **and** a throwaway empty `UV_CACHE_DIR` (a genuinely cold `uv`, forcing all 37 dependency wheels to re-download from PyPI) — total wall time ~11.8 s, still no timeout, no first-call race, no `MCP_TIMEOUT` failure. `uv run --project`'s auto-sync-on-invocation absorbs the cold-resolve cost transparently; the documented `uv sync` pre-warm (work item 1) is still worth keeping as a fast-fail install check, but it is not load-bearing for launch reliability the way the risk write-up assumed.
+- **Not tested (still open, as the plan anticipated):** a login shell without dev-shell PATH hooks / a fresh user account, so a "`uv` absent from Claude's inherited PATH" failure remains theoretical rather than ruled out. And per the plan's own note-6 caveat, this spike only exercises the `--plugin-dir` dev-loading path — an installed plugin with a read-only `${CLAUDE_PLUGIN_ROOT}` remains untested and the verdict for that path stays **provisional**, deferred to the distribution phase along with the marketplace listing.
+- **Decision:** ship the `uv run --project ${CLAUDE_PLUGIN_ROOT}/server osrlib-referee-mcp` launch mechanism as-is (work item 5's `.mcp.json`, unchanged). No fallback rung was needed.
 
 ### 8. README and licensing touch-ups
 

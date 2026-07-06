@@ -1,0 +1,52 @@
+[project]
+name = "osrlib-referee-mcp"
+version = "0.1.0"
+description = "Stdio MCP server holding a live osrlib GameSession for the osrlib-referee Claude Code plugin"
+license = "CC0-1.0"
+requires-python = ">=3.14"
+dependencies = [
+    "osrlib>=1.1,<2",
+    "mcp>=1.28,<2",
+]
+
+[dependency-groups]
+dev = [
+    "anyio>=4",
+    "pytest>=8",
+    "ruff>=0.11",
+]
+
+[project.scripts]
+osrlib-referee-mcp = "osrlib_referee_mcp.server:main"
+
+[build-system]
+requires = ["uv_build>=0.8.22,<0.9.0"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 120
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "B",   # bugbear
+    "D",   # pydocstyle
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "W",   # pycodestyle warnings
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["osrlib_referee_mcp"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+anyio_mode = "auto"

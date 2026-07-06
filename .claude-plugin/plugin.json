@@ -1,0 +1,20 @@
+{
+  "name": "osrlib-referee",
+  "description": "osrlib-referee — MCP-enabled B/X tabletop RPG referee where the deterministic osrlib engine owns every roll and all game state",
+  "author": {
+    "name": "Marsh Macy",
+    "url": "https://github.com/mmacy"
+  },
+  "repository": "https://github.com/mmacy/osrlib-referee",
+  "license": "CC0-1.0",
+  "keywords": [
+    "osr",
+    "bx",
+    "old-school-essentials",
+    "tabletop-rpg",
+    "dungeon-master",
+    "referee",
+    "mcp",
+    "solo-rpg"
+  ]
+}

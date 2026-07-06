@@ -1,0 +1,35 @@
+# Covers rungs 1-3 of the server's test ladder (schema, in-process session, the
+# in-memory MCP boundary). CI cannot launch Claude Code, so the packaging spike
+# (docs/phase-0-plan.md work item 7) is a manual gate, not a job here.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Sync dependencies
+        run: uv sync --project server --locked
+
+      - name: Check formatting
+        run: uv run --project server ruff format --check
+
+      - name: Lint
+        run: uv run --project server ruff check
+
+      - name: Test
+        run: uv run --project server pytest server

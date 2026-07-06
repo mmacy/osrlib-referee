@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "osrlib": {
+      "command": "uv",
+      "args": ["run", "--project", "${CLAUDE_PLUGIN_ROOT}/server", "osrlib-referee-mcp"]
+    }
+  }
+}
