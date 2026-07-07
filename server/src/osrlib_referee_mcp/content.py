@@ -26,6 +26,7 @@ the gap by 60 ft every round and catch the party almost immediately.
 """
 
 from collections.abc import Callable
+from dataclasses import dataclass
 
 from osrlib.core.alignment import Alignment
 from osrlib.core.character import CHARACTER_CREATION_STREAM, create_character, party_to_document
@@ -252,6 +253,22 @@ def default_party_document() -> dict[str, object]:
     return party_to_document(build_scripted_party().members)
 
 
-ADVENTURE_REGISTRY: dict[str, Callable[[], Adventure]] = {ADVENTURE_ID: build_adventure}
-"""The server's native adventure registry — one entry in Phase 1; Phase 2's module
-ingestion grows it."""
+@dataclass(frozen=True)
+class NativeAdventure:
+    """A native, Python-authored adventure: its builder paired with its prose sidecar.
+
+    The native counterpart to a compiled bundle. Discovery
+    ([`osrlib_referee_mcp.registry`][osrlib_referee_mcp.registry]) unions these with
+    on-disk bundles behind one adventure-id lookup.
+    """
+
+    adventure_id: str
+    build: Callable[[], Adventure]
+    prose: dict[str, dict[str, str]]
+
+
+NATIVE_ADVENTURES: dict[str, NativeAdventure] = {
+    ADVENTURE_ID: NativeAdventure(ADVENTURE_ID, build_adventure, PROSE_SIDECAR),
+}
+"""The server's native adventure registry — one entry; discovery unions it with
+on-disk compiled bundles."""

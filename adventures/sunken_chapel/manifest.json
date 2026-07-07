@@ -1,0 +1,23 @@
+{
+  "bundle_id": "sunken_chapel",
+  "name": "The Sunken Chapel of Neth",
+  "description": "A drowned river-god's shrine and the cult that never left. Levels 1-2.",
+  "osrlib_version": "1.1.0",
+  "license": "CC0-1.0",
+  "approximations": {
+    "reskins": [
+      {
+        "source_name": "Gravebound Acolyte",
+        "template_id": "zombie",
+        "area_id": "ossuary"
+      }
+    ],
+    "geometry": [
+      "The nave's curved apse (source area 3) is squared to the grid: the two nave cells plus the reliquary cell approximate the organic curve behind the altar."
+    ],
+    "escape_hatch": [
+      "The Black Font's scrying vision (area 'font_hall') has no SRD analogue; the referee adjudicates it live.",
+      "The Tear of Neth's scrying property (area 'reliquary') has no SRD analogue; its 500 gp stock value stands and any scrying is adjudicated live."
+    ]
+  }
+}
