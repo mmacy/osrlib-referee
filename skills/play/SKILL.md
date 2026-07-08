@@ -13,8 +13,8 @@ One loop owns exploration, encounters, and battle — there is no separate comba
 ## Starting a session
 
 1. **AskUserQuestion** — new adventure, or continue a save?
-   - New: call `list_adventures` for the available `adventure_id`s. If there's exactly one, use it without asking; if there's more than one, ask which.
-   - Continue: ask for the save slot (`save_id`); default to `"default"` if the player has no other name in mind.
+   - New: call `list_adventures` for the available `adventure_id`s (native adventures and discovered compiled bundles alike). If there's exactly one, use it without asking; if there's more than one, ask which.
+   - Continue: ask for the save slot (`save_id`); default to the adventure's own id — the slot `session_new` uses by default — if the player has no other name in mind.
 2. Call `session_new(adventure_id)` or `session_load(save_id)`. This is the schema/engine-version handshake — it never returns the seed, and you never need it.
 3. Call `observe()`. Right after `session_new`/`session_load` this comes back "cold" — it includes a bounded tail of recent events, which is what you recap from on a resumed save. Call `prose(area.id)` (or `prose("town")` if `area` is the town) and deliver its `read_aloud` verbatim as the opening scene.
 
@@ -53,11 +53,11 @@ Call `session_save()` at natural pause points (returning to town, ending the ses
 
 | Tool | Use |
 |---|---|
-| `session_new(adventure_id, seed?, party_document?, save_id?)` | Start a fresh session; persists immediately. |
+| `session_new(adventure_id, seed?, party_document?, save_id?)` | Start a fresh session; persists immediately. `save_id` defaults to the `adventure_id`. |
 | `session_load(save_id)` | Resume a prior save; the adventure is embedded in it. |
 | `session_save()` | Persist the active session to its current slot. |
 | `execute(command)` | Run one `AnyCommand`-union command; returns `{accepted, rejections, events}`. |
 | `observe(scope="current")` | The scoped current-state projection: mode, legal commands, location, area, edges, party, effects, flags, encounter/battle. |
 | `prose(area_id)` | The authored `{read_aloud, referee_notes}` for an area, or `"town"`. |
 | `list_commands(mode?)` | The mode-scoped command menu, split player-intent / authorial. |
-| `list_adventures()` | The server's native adventure registry. |
+| `list_adventures()` | The adventures this server can start — native builders and discovered on-disk bundles. |

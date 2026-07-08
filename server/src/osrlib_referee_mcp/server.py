@@ -17,8 +17,8 @@ from mcp.server.fastmcp import FastMCP
 from osrlib.crawl.commands import AnyCommand
 
 from osrlib_referee_mcp.catalog import list_command_types
-from osrlib_referee_mcp.content import ADVENTURE_REGISTRY, PROSE_SIDECAR
 from osrlib_referee_mcp.projection import build_observation
+from osrlib_referee_mcp.registry import list_adventure_entries
 from osrlib_referee_mcp.store import SessionStore
 
 mcp = FastMCP("osrlib-referee")
@@ -31,20 +31,20 @@ async def session_new(
     adventure_id: str,
     seed: int | None = None,
     party_document: dict[str, object] | None = None,
-    save_id: str = "default",
+    save_id: str | None = None,
 ) -> dict[str, object]:
-    """Start a fresh session on a native adventure and persist it immediately.
+    """Start a fresh session on an adventure and persist it immediately.
 
     Args:
-        adventure_id: A key in the server's native adventure registry
+        adventure_id: A native adventure id or a discovered bundle id
             (`list_adventures` lists the known ids).
         seed: The master seed. Omit for a fresh, unpredictable seed; pin it for a
             reproducible session.
         party_document: A `party_to_document`-shaped document. Omit to use the
             frozen pregen roster (a fighter, a cleric, and a thief).
-        save_id: The save slot stem this session persists under. Defaults to
-            `"default"`; pass a distinct name to keep more than one save per
-            adventure.
+        save_id: The save slot stem this session persists under. Omit to default to
+            the `adventure_id` — a globally-unique slot so coexisting adventures never
+            collide; pass a distinct name to keep more than one save per adventure.
 
     Returns:
         `{schema_version, engine_version, save_id}` — never the seed.
@@ -137,7 +137,7 @@ def prose(area_id: str) -> dict[str, object]:
         `{found: False, area_id}` for an unknown id — a content bug the skill should
         surface, not a tool error.
     """
-    entry = PROSE_SIDECAR.get(area_id)
+    entry = _store.active_prose.get(area_id)
     if entry is None:
         return {"found": False, "area_id": area_id}
     return {"found": True, "area_id": area_id, **entry}
@@ -164,16 +164,14 @@ def list_commands(mode: str | None = None) -> dict[str, list[str]]:
 
 @mcp.tool()
 def list_adventures() -> list[dict[str, str]]:
-    """List the server's native adventure registry.
+    """List the adventures this server can start — native builders and on-disk bundles.
 
     Returns:
-        One `{adventure_id, name, description}` entry per registered adventure.
+        One `{adventure_id, name, description}` entry per resolvable adventure: the
+        native registry first, then compiled bundles discovered in the in-repo
+        `adventures/` directory and the game directory's `bundles/`.
     """
-    entries = []
-    for adventure_id, builder in ADVENTURE_REGISTRY.items():
-        adventure = builder()
-        entries.append({"adventure_id": adventure_id, "name": adventure.name, "description": adventure.description})
-    return entries
+    return list_adventure_entries([_store.adventures_dir, _store.game_bundles_dir])
 
 
 def main() -> None:

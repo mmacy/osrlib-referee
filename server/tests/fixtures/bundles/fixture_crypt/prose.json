@@ -1,0 +1,18 @@
+{
+  "town": {
+    "read_aloud": "Redhollow is a scatter of turf-roofed huts around a green.",
+    "referee_notes": "Safe ground. The vault lies one turn to the north."
+  },
+  "entrance": {
+    "read_aloud": "A squat stone door, ajar on darkness, is set into the hillside.",
+    "referee_notes": "The only legal cell for TravelToTown. A plain door bars the way east."
+  },
+  "vault": {
+    "read_aloud": "The strong room is dry and still. An iron-banded strongbox sits against the shelving.",
+    "referee_notes": "The strongbox holds a dagger and 25 gp \u2014 TakeTreasure(feature_id='strongbox')."
+  },
+  "den": {
+    "read_aloud": "The passage ends in a reeking hollow. Something heavy shifts in the bone-litter.",
+    "referee_notes": "One giant rat, no stance pin \u2014 a reaction roll opens the beat."
+  }
+}

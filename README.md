@@ -6,14 +6,14 @@ This is a sibling to, not a replacement for, the [`bx-referee`](https://github.c
 
 ## Status
 
-Phase 0 (scaffolding and the packaging spike) is done. Phase 1 (proving the loop on native content) is done, with one deferred piece: the delve is playable end-to-end through the real MCP tool surface, the test ladder is green, and the `play` skill and constitution are written — but the comparative token measurement against `bx-referee`, and the manual `claude --plugin-dir .` play-through that confirms the exposed tool names live, remain a follow-on (see "Token measurement" below and `docs/phase-1-plan.md`'s "Corrections found during implementation" section). Phase 2 (content ingestion) is next. The decision-complete design and phased roadmap live in [`docs/spec.md`](docs/spec.md); the phase build records, including the packaging spike's and Phase 1's recorded verdicts, are in `docs/phase-0-plan.md` and [`docs/phase-1-plan.md`](docs/phase-1-plan.md).
+Phase 0 (scaffolding and the packaging spike) is done. Phase 1 (proving the loop on native content) is done, with one deferred piece: the comparative token measurement against `bx-referee`, and the manual `claude --plugin-dir .` play-through that confirms the exposed tool names live, remain a follow-on (see "Token measurement" below and `docs/phase-1-plan.md`'s "Corrections found during implementation" section). Phase 2 (the SRD-only content bridge) is done: an on-disk **adventure bundle** format and loader, discovery that unions native builders with compiled bundles, the `validate_bundle` compile gate, the `compile-adventure` skill, and a compiled demo module (`adventures/sunken_chapel/`) that plays end-to-end. The decision-complete design and phased roadmap live in [`docs/spec.md`](docs/spec.md); the phase build records are in `docs/phase-0-plan.md`, [`docs/phase-1-plan.md`](docs/phase-1-plan.md), and [`docs/phase-2-plan.md`](docs/phase-2-plan.md).
 
 ## How it works
 
 - A stdio MCP server holds a live `osrlib` `GameSession` in-process. Four tools carry the whole loop: `execute(command)` runs one typed command from the `AnyCommand` union and returns `{accepted, rejections, events}`; `observe()` returns a scoped, referee-visibility projection of current state (never the raw save document); `prose(area_id)` returns the authored read-aloud/referee-notes sidecar; `session_new`/`session_load`/`session_save` handle the lifecycle, with saves persisted durably to the user's game directory.
 - Mechanics and state (dice, THAC0, saves, morale, XP, encumbrance, initiative, the explored map) are the engine's; narration and freeform-intent adjudication are the LLM's, governed by the `play` skill's [constitution](skills/play/references/constitution.md).
 - Phase 1 ships one native adventure (`server/src/osrlib_referee_mcp/content.py`): a one-level barrow crypt with a scripted delve — enter, light a torch, spring a trap, fight, flee, and return to town — proven by an in-process golden test (`server/tests/test_delve_golden.py`) driving the real server tool functions.
-- Published-module content ingestion (an "adventure bundle" — an `osrlib` `Adventure` spec plus a prose sidecar, compiled from a module PDF) is Phase 2, not yet built.
+- Phase 2 adds **adventure bundles**: a compiled module is an on-disk directory (`adventure.json` + `prose.json` + `manifest.json`) that the same tools load and play like native content. The `compile-adventure` skill turns a written module into a bundle — transcribing its map to the grid, splitting read-aloud text from referee notes, and **reskinning** any non-SRD creature to its nearest stock SRD template (logged in the manifest's approximation audit). A bundle carries **no custom catalog**: every id resolves against the stock SRD, so there is no engine change and no change to how the `play` skill behaves. `adventures/sunken_chapel/` is a compiled original demo module.
 
 See the spec for the architecture, the token-efficiency thesis, the content-ingestion strategy, and the licensing boundaries.
 
@@ -22,6 +22,18 @@ See the spec for the architecture, the token-efficiency thesis, the content-inge
 Inside a Claude Code session with this plugin loaded (see "Running locally" below), the `play` skill drives a session: it calls `session_new`/`session_load` to start or resume, then loops `execute`/`observe`/`prose` for the rest of the session, narrating strictly from what the engine returns.
 
 Saves persist to `<game-root>/adventures/<adventure-id>/<save-id>.json`. `<game-root>` defaults to `~/osr-games` (never the plugin cache) and is overridable via the `OSRLIB_REFEREE_GAME_ROOT` environment variable — the same game-directory convention `bx-referee` uses.
+
+## Compiling a module
+
+The `compile-adventure` skill turns a written module (PDF or Markdown) into a bundle. It leans on a deterministic helper CLI kept **off** the play tool surface — so it costs play sessions nothing — for the correctness-critical steps:
+
+```bash
+uv run --project server python -m osrlib_referee_mcp.bundletool validate adventures/<bundle-id>
+uv run --project server python -m osrlib_referee_mcp.bundletool render-map adventures/<bundle-id>
+uv run --project server python -m osrlib_referee_mcp.bundletool edge-key 3 2 east
+```
+
+A compiled bundle for an openly-licensed or original module commits to `adventures/`; a bundle for a non-open module stays private in `<game-root>/bundles/` and is never committed (see the Licensing section of `AGENTS.md`). Every keyed id resolves against the stock SRD catalog — bundles inject no custom content.
 
 ## Token measurement
 

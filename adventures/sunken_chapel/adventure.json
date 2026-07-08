@@ -1,0 +1,227 @@
+{
+  "name": "The Sunken Chapel of Neth",
+  "description": "A drowned river-god's shrine and the cult that never left. Levels 1-2.",
+  "hooks": [
+    "The dam-wardens pay for proof the old chapel is finally empty."
+  ],
+  "town": {
+    "name": "Millford",
+    "description": "A river town below the old dam.",
+    "services": [],
+    "travel_turns": {
+      "sunken_chapel": 2
+    }
+  },
+  "dungeons": [
+    {
+      "id": "sunken_chapel",
+      "name": "The Sunken Chapel of Neth",
+      "levels": [
+        {
+          "number": 1,
+          "width": 5,
+          "height": 4,
+          "edges": {
+            "2,3:north": {
+              "kind": "open",
+              "door": null
+            },
+            "2,2:north": {
+              "kind": "open",
+              "door": null
+            },
+            "2,1:west": {
+              "kind": "open",
+              "door": null
+            },
+            "2,1:north": {
+              "kind": "door",
+              "door": {
+                "kind": "normal",
+                "stuck": true,
+                "locked": false,
+                "starts_open": false
+              }
+            },
+            "3,1:west": {
+              "kind": "open",
+              "door": null
+            },
+            "1,1:west": {
+              "kind": "open",
+              "door": null
+            },
+            "2,0:west": {
+              "kind": "open",
+              "door": null
+            },
+            "3,0:west": {
+              "kind": "open",
+              "door": null
+            },
+            "4,0:west": {
+              "kind": "door",
+              "door": {
+                "kind": "normal",
+                "stuck": false,
+                "locked": false,
+                "starts_open": false
+              }
+            },
+            "4,1:west": {
+              "kind": "open",
+              "door": null
+            }
+          },
+          "areas": [
+            {
+              "id": "entrance",
+              "name": "Broken stair",
+              "description": "A silt-choked landing where the surface stair ends.",
+              "cells": [
+                [
+                  2,
+                  3
+                ]
+              ],
+              "encounter": null,
+              "features": [],
+              "trap": null,
+              "treasure": null
+            },
+            {
+              "id": "font_hall",
+              "name": "Font hall",
+              "description": "A side chamber with a basin of black, motionless water.",
+              "cells": [
+                [
+                  0,
+                  1
+                ]
+              ],
+              "encounter": null,
+              "features": [],
+              "trap": null,
+              "treasure": null
+            },
+            {
+              "id": "nave",
+              "name": "Nave",
+              "description": "Shattered pews facing a silt-caked altar; a curved apse behind it.",
+              "cells": [
+                [
+                  1,
+                  0
+                ],
+                [
+                  2,
+                  0
+                ]
+              ],
+              "encounter": null,
+              "features": [],
+              "trap": null,
+              "treasure": null
+            },
+            {
+              "id": "reliquary",
+              "name": "Reliquary",
+              "description": "A gold-leaf niche holding a single sealed iron casket.",
+              "cells": [
+                [
+                  4,
+                  0
+                ]
+              ],
+              "encounter": null,
+              "features": [
+                {
+                  "id": "casket",
+                  "kind": "treasure_cache",
+                  "description": "An iron casket, its lid sealed with blackened wax.",
+                  "cell": null,
+                  "item_ids": [
+                    "holy_water",
+                    "silver_dagger"
+                  ],
+                  "coins": {
+                    "pp": 0,
+                    "gp": 120,
+                    "ep": 0,
+                    "sp": 0,
+                    "cp": 0
+                  },
+                  "valuables": [
+                    {
+                      "kind": "gem",
+                      "name": "Tear of Neth",
+                      "value_gp": 500,
+                      "weight_coins": 0
+                    }
+                  ],
+                  "trap": {
+                    "kind": "treasure",
+                    "trigger": "open",
+                    "effect": {
+                      "damage_dice": "1d4",
+                      "volley_dice": null,
+                      "save": null,
+                      "kills": false,
+                      "condition": null,
+                      "condition_duration_dice": null,
+                      "condition_duration_amount": null,
+                      "condition_duration_unit": null,
+                      "fall_feet": null,
+                      "transition": null,
+                      "manual": null
+                    },
+                    "affects": "triggerer"
+                  }
+                }
+              ],
+              "trap": null,
+              "treasure": null
+            },
+            {
+              "id": "ossuary",
+              "name": "Ossuary",
+              "description": "A floor of stacked skulls; two robed shapes stir at the back.",
+              "cells": [
+                [
+                  4,
+                  1
+                ]
+              ],
+              "encounter": {
+                "monsters": [
+                  {
+                    "template_id": "zombie",
+                    "count_dice": null,
+                    "count_fixed": 2
+                  }
+                ],
+                "alignment": null,
+                "aware": true,
+                "stance": "attacks"
+              },
+              "features": [],
+              "trap": null,
+              "treasure": null
+            }
+          ],
+          "features": [],
+          "transitions": [],
+          "wandering": {
+            "chance_in_six": 0,
+            "interval_turns": 2,
+            "table": null
+          },
+          "entrance": [
+            2,
+            3
+          ]
+        }
+      ]
+    }
+  ]
+}

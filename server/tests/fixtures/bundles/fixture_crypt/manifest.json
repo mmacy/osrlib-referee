@@ -1,0 +1,12 @@
+{
+  "bundle_id": "fixture_crypt",
+  "name": "The Redhollow Vault",
+  "description": "A one-room fixture vault for round-trip and delve tests.",
+  "osrlib_version": "1.1.0",
+  "license": "CC0-1.0",
+  "approximations": {
+    "reskins": [],
+    "geometry": [],
+    "escape_hatch": []
+  }
+}

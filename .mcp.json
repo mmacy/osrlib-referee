@@ -2,7 +2,10 @@
   "mcpServers": {
     "osrlib": {
       "command": "uv",
-      "args": ["run", "--project", "${CLAUDE_PLUGIN_ROOT}/server", "osrlib-referee-mcp"]
+      "args": ["run", "--project", "${CLAUDE_PLUGIN_ROOT}/server", "osrlib-referee-mcp"],
+      "env": {
+        "OSRLIB_REFEREE_ADVENTURES_DIR": "${CLAUDE_PLUGIN_ROOT}/adventures"
+      }
     }
   }
 }

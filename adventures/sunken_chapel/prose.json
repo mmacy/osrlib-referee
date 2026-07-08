@@ -1,0 +1,26 @@
+{
+  "town": {
+    "read_aloud": "Millford clings to the riverbank below the broken dam, its lower streets still stained with the old flood-line. The wardens will pay to know the drowned chapel is empty.",
+    "referee_notes": "Safe ground. The chapel lies two turns downriver; the broken stair is the only way in."
+  },
+  "entrance": {
+    "read_aloud": "The stair from the surface ends in a silt-choked landing, ankle-deep in cold water. A single passage leads north into the dark. The air smells of river-mud and old incense.",
+    "referee_notes": "The descent cell and the only legal cell for TravelToTown. One passage north."
+  },
+  "font_hall": {
+    "read_aloud": "A shallow basin of black, motionless water fills the middle of this side chamber. Its surface does not ripple, even when the floor is disturbed. Emptied votive niches line the walls.",
+    "referee_notes": "The Black Font (escape-hatch beat): a character who drinks or scries sees a fragmentary vision of the chapel drowning. No rules cover it \u2014 adjudicate live (a save vs despair, referee's call)."
+  },
+  "nave": {
+    "read_aloud": "Two rows of shattered pews face a silt-caked altar, everything warped to a grey sameness. Behind the altar the wall curves away into a low apse where the gold still catches the light.",
+    "referee_notes": "The hub. The apse is the approach to the reliquary. A loud fight here is heard in the ossuary. The curved apse is squared to the grid (see manifest geometry note)."
+  },
+  "reliquary": {
+    "read_aloud": "A niche of flaking gold leaf holds a single iron casket, its lid sealed with wax gone black with age.",
+    "referee_notes": "TakeTreasure(feature_id='casket'): holy water, a silver dagger, 120 gp, and the Tear of Neth (a 500 gp gem). Needle trap on open (1d4). The Tear's scrying is an escape-hatch beat \u2014 adjudicate live."
+  },
+  "ossuary": {
+    "read_aloud": "Bone-dust lies thick over a floor of stacked skulls. As the light falls across them, two robed shapes at the back of the chamber straighten, and turn, and come.",
+    "referee_notes": "Two Gravebound Acolytes, reskinned to SRD zombies (2 HD, slow, no special), stance pinned to ATTACKS and aware. Narrate by appearance \u2014 never say 'zombie'. They carry no treasure."
+  }
+}

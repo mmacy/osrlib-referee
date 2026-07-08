@@ -1,0 +1,397 @@
+{
+  "name": "The Redhollow Vault",
+  "description": "A one-room fixture vault for round-trip and delve tests.",
+  "hooks": [],
+  "town": {
+    "name": "Redhollow",
+    "description": "A muddy hamlet.",
+    "services": [],
+    "travel_turns": {
+      "redhollow_vault": 1
+    }
+  },
+  "dungeons": [
+    {
+      "id": "redhollow_vault",
+      "name": "The Redhollow Vault",
+      "levels": [
+        {
+          "number": 1,
+          "width": 3,
+          "height": 1,
+          "edges": {
+            "1,0:west": {
+              "kind": "door",
+              "door": {
+                "kind": "normal",
+                "stuck": false,
+                "locked": false,
+                "starts_open": false
+              }
+            },
+            "2,0:west": {
+              "kind": "open",
+              "door": null
+            }
+          },
+          "areas": [
+            {
+              "id": "entrance",
+              "name": "Vault door",
+              "description": "A low stone door in the hillside.",
+              "cells": [
+                [
+                  0,
+                  0
+                ]
+              ],
+              "encounter": null,
+              "features": [],
+              "trap": null,
+              "treasure": null
+            },
+            {
+              "id": "vault",
+              "name": "Strong room",
+              "description": "A dry stone chamber, its far wall lined with rotted shelving.",
+              "cells": [
+                [
+                  1,
+                  0
+                ]
+              ],
+              "encounter": null,
+              "features": [
+                {
+                  "id": "strongbox",
+                  "kind": "treasure_cache",
+                  "description": "An iron-banded strongbox.",
+                  "cell": null,
+                  "item_ids": [
+                    "dagger"
+                  ],
+                  "coins": {
+                    "pp": 0,
+                    "gp": 25,
+                    "ep": 0,
+                    "sp": 0,
+                    "cp": 0
+                  },
+                  "valuables": [],
+                  "trap": null
+                }
+              ],
+              "trap": null,
+              "treasure": null
+            },
+            {
+              "id": "den",
+              "name": "Rat den",
+              "description": "A reeking hollow of gnawed bone.",
+              "cells": [
+                [
+                  2,
+                  0
+                ]
+              ],
+              "encounter": {
+                "monsters": [
+                  {
+                    "template_id": "giant_rat",
+                    "count_dice": null,
+                    "count_fixed": 1
+                  }
+                ],
+                "alignment": null,
+                "aware": false,
+                "stance": null
+              },
+              "features": [],
+              "trap": null,
+              "treasure": null
+            }
+          ],
+          "features": [],
+          "transitions": [],
+          "wandering": {
+            "chance_in_six": 0,
+            "interval_turns": 2,
+            "table": {
+              "id": "fixture_wander",
+              "label": "Fixture wandering",
+              "min_level": 1,
+              "max_level": null,
+              "rows": [
+                {
+                  "roll": 1,
+                  "name": "Giant rats",
+                  "entry": {
+                    "kind": "monster",
+                    "monster_ids": [
+                      "giant_rat"
+                    ],
+                    "variant_dice": null
+                  },
+                  "count_dice": null,
+                  "count_fixed": 1
+                },
+                {
+                  "roll": 2,
+                  "name": "Giant rats",
+                  "entry": {
+                    "kind": "monster",
+                    "monster_ids": [
+                      "giant_rat"
+                    ],
+                    "variant_dice": null
+                  },
+                  "count_dice": null,
+                  "count_fixed": 1
+                },
+                {
+                  "roll": 3,
+                  "name": "Giant rats",
+                  "entry": {
+                    "kind": "monster",
+                    "monster_ids": [
+                      "giant_rat"
+                    ],
+                    "variant_dice": null
+                  },
+                  "count_dice": null,
+                  "count_fixed": 1
+                },
+                {
+                  "roll": 4,
+                  "name": "Giant rats",
+                  "entry": {
+                    "kind": "monster",
+                    "monster_ids": [
+                      "giant_rat"
+                    ],
+                    "variant_dice": null
+                  },
+                  "count_dice": null,
+                  "count_fixed": 1
+                },
+                {
+                  "roll": 5,
+                  "name": "Giant rats",
+                  "entry": {
+                    "kind": "monster",
+                    "monster_ids": [
+                      "giant_rat"
+                    ],
+                    "variant_dice": null
+                  },
+                  "count_dice": null,
+                  "count_fixed": 1
+                },
+                {
+                  "roll": 6,
+                  "name": "Giant rats",
+                  "entry": {
+                    "kind": "monster",
+                    "monster_ids": [
+                      "giant_rat"
+                    ],
+                    "variant_dice": null
+                  },
+                  "count_dice": null,
+                  "count_fixed": 1
+                },
+                {
+                  "roll": 7,
+                  "name": "Giant rats",
+                  "entry": {
+                    "kind": "monster",
+                    "monster_ids": [
+                      "giant_rat"
+                    ],
+                    "variant_dice": null
+                  },
+                  "count_dice": null,
+                  "count_fixed": 1
+                },
+                {
+                  "roll": 8,
+                  "name": "Giant rats",
+                  "entry": {
+                    "kind": "monster",
+                    "monster_ids": [
+                      "giant_rat"
+                    ],
+                    "variant_dice": null
+                  },
+                  "count_dice": null,
+                  "count_fixed": 1
+                },
+                {
+                  "roll": 9,
+                  "name": "Giant rats",
+                  "entry": {
+                    "kind": "monster",
+                    "monster_ids": [
+                      "giant_rat"
+                    ],
+                    "variant_dice": null
+                  },
+                  "count_dice": null,
+                  "count_fixed": 1
+                },
+                {
+                  "roll": 10,
+                  "name": "Giant rats",
+                  "entry": {
+                    "kind": "monster",
+                    "monster_ids": [
+                      "giant_rat"
+                    ],
+                    "variant_dice": null
+                  },
+                  "count_dice": null,
+                  "count_fixed": 1
+                },
+                {
+                  "roll": 11,
+                  "name": "Giant rats",
+                  "entry": {
+                    "kind": "monster",
+                    "monster_ids": [
+                      "giant_rat"
+                    ],
+                    "variant_dice": null
+                  },
+                  "count_dice": null,
+                  "count_fixed": 1
+                },
+                {
+                  "roll": 12,
+                  "name": "Giant rats",
+                  "entry": {
+                    "kind": "monster",
+                    "monster_ids": [
+                      "giant_rat"
+                    ],
+                    "variant_dice": null
+                  },
+                  "count_dice": null,
+                  "count_fixed": 1
+                },
+                {
+                  "roll": 13,
+                  "name": "Giant rats",
+                  "entry": {
+                    "kind": "monster",
+                    "monster_ids": [
+                      "giant_rat"
+                    ],
+                    "variant_dice": null
+                  },
+                  "count_dice": null,
+                  "count_fixed": 1
+                },
+                {
+                  "roll": 14,
+                  "name": "Giant rats",
+                  "entry": {
+                    "kind": "monster",
+                    "monster_ids": [
+                      "giant_rat"
+                    ],
+                    "variant_dice": null
+                  },
+                  "count_dice": null,
+                  "count_fixed": 1
+                },
+                {
+                  "roll": 15,
+                  "name": "Giant rats",
+                  "entry": {
+                    "kind": "monster",
+                    "monster_ids": [
+                      "giant_rat"
+                    ],
+                    "variant_dice": null
+                  },
+                  "count_dice": null,
+                  "count_fixed": 1
+                },
+                {
+                  "roll": 16,
+                  "name": "Giant rats",
+                  "entry": {
+                    "kind": "monster",
+                    "monster_ids": [
+                      "giant_rat"
+                    ],
+                    "variant_dice": null
+                  },
+                  "count_dice": null,
+                  "count_fixed": 1
+                },
+                {
+                  "roll": 17,
+                  "name": "Giant rats",
+                  "entry": {
+                    "kind": "monster",
+                    "monster_ids": [
+                      "giant_rat"
+                    ],
+                    "variant_dice": null
+                  },
+                  "count_dice": null,
+                  "count_fixed": 1
+                },
+                {
+                  "roll": 18,
+                  "name": "Giant rats",
+                  "entry": {
+                    "kind": "monster",
+                    "monster_ids": [
+                      "giant_rat"
+                    ],
+                    "variant_dice": null
+                  },
+                  "count_dice": null,
+                  "count_fixed": 1
+                },
+                {
+                  "roll": 19,
+                  "name": "Giant rats",
+                  "entry": {
+                    "kind": "monster",
+                    "monster_ids": [
+                      "giant_rat"
+                    ],
+                    "variant_dice": null
+                  },
+                  "count_dice": null,
+                  "count_fixed": 1
+                },
+                {
+                  "roll": 20,
+                  "name": "Giant rats",
+                  "entry": {
+                    "kind": "monster",
+                    "monster_ids": [
+                      "giant_rat"
+                    ],
+                    "variant_dice": null
+                  },
+                  "count_dice": null,
+                  "count_fixed": 1
+                }
+              ],
+              "overrides_applied": []
+            }
+          },
+          "entrance": [
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  ]
+}
