@@ -1,6 +1,6 @@
 ---
 name: character
-description: Create Old-School Essentials (B/X) characters and assemble a party through the deterministic, seeded chargen CLI, where the osrlib engine rolls every ability score, hit-point total, and gold piece — never the LLM. Use when creating a new character, rolling up a PC, or building a party before starting an adventure.
+description: Create B/X (Basic/Expert) characters and assemble a party through the deterministic, seeded chargen CLI, where the osrlib engine rolls every ability score, hit-point total, and gold piece — never the LLM. Use when creating a new character, rolling up a PC, or building a party before starting an adventure.
 allowed-tools: Bash AskUserQuestion
 ---
 

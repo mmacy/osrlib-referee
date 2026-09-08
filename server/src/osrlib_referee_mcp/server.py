@@ -206,12 +206,13 @@ def list_commands(mode: str | None = None) -> dict[str, list[str]]:
     schema pruner).
 
     Args:
-        mode: A `SessionMode` value to gate player-intent commands by. Omit to list
-            every player-intent command regardless of mode.
+        mode: A `SessionMode` value to gate the menu by. Omit to list every command
+            regardless of mode.
 
     Returns:
-        `{"player_intent": [...], "authorial": [...]}`. The 11 authorial commands
-        are legal in every mode and are not filtered by `mode`.
+        `{"player_intent": [...], "authorial": [...]}`. Player-intent commands are
+        scoped to a phase of play; the authorial commands are the referee's, legal
+        throughout a live session. Both lists are filtered by `mode`.
     """
     return list_command_types(mode)
 

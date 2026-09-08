@@ -12,8 +12,9 @@ from osrlib.core.alignment import Alignment
 
 from osrlib_referee_mcp import chargen
 
-# The seed-42 golden. Pinned against osrlib v1.1.0; a change here means a creation-draw
-# or ordering change in the engine, which the party surface must notice.
+# The seed-42 golden. First pinned against osrlib v1.1.0 and unchanged through v1.7.1;
+# a change here means a creation-draw or ordering change in the engine, which the party
+# surface must notice.
 GOLDEN_SEED = 42
 GOLDEN_SCORES = {"str": 10, "int": 12, "wis": 15, "dex": 15, "con": 11, "cha": 11}
 GOLDEN_FIGHTER_HP = 5

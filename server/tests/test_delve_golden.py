@@ -22,6 +22,7 @@ from osrlib.crawl.commands import (
 )
 from osrlib.crawl.dungeon import Direction
 
+from helpers import battle_round_declarations
 from osrlib_referee_mcp.content import ADVENTURE_ID, DUNGEON_ID, LIGHT_SOURCE_ATTEMPTS, SESSION_SEED
 from osrlib_referee_mcp.server import execute, observe, session_new
 
@@ -73,14 +74,8 @@ async def test_scripted_delve_end_to_end():
     rounds = 0
     while observe()["mode"] == "battle" and rounds < 20:
         rounds += 1
-        living = observe()["party"]
         group_id = observe()["encounter"]["groups"][0]["id"]
-        declarations = tuple(
-            BattleDeclaration(character_id=member["id"], action="attack", target_group_id=group_id)
-            for member in living
-            if member["current_hp"] > 0
-        )
-        round_result = await execute(ResolveBattleRound(declarations=declarations))
+        round_result = await execute(ResolveBattleRound(declarations=battle_round_declarations(group_id)))
         assert round_result["accepted"]
     assert observe()["mode"] == "exploring", "encounter_a did not resolve to victory"
     assert all(member["current_hp"] > 0 for member in observe()["party"]), "a party member dropped in encounter_a"
@@ -93,11 +88,9 @@ async def test_scripted_delve_end_to_end():
     assert observe()["mode"] == "battle"
     assert observe()["area"]["id"] == "encounter_b"
 
-    living = observe()["party"]
     retreat = tuple(
-        BattleDeclaration(character_id=member["id"], action="move", move="retreat")
-        for member in living
-        if member["current_hp"] > 0
+        BattleDeclaration(character_id=character_id, action="move", move="retreat")
+        for character_id in observe()["encounter"]["declarers"]
     )
     fled = await execute(ResolveBattleRound(declarations=retreat))
     assert fled["accepted"]
