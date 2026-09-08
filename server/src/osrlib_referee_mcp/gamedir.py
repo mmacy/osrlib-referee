@@ -70,6 +70,66 @@ def game_bundles_dir(game_root: Path) -> Path:
     return game_root / "bundles"
 
 
+def parties_dir(game_root: Path) -> Path:
+    """The game-directory subtree holding built party documents.
+
+    Kept separate from the saves and bundles subtrees: a party is a pre-session build
+    artifact (`chargen party`), resolved by id when `session_new(party_ref=…)` starts a
+    session, and never confused with a save.
+
+    Args:
+        game_root: The resolved game-root directory.
+
+    Returns:
+        `<game-root>/parties`. Not guaranteed to exist yet.
+    """
+    return game_root / "parties"
+
+
+def party_path(game_root: Path, party_id: str) -> Path:
+    """The on-disk path for one built party document.
+
+    Args:
+        game_root: The resolved game-root directory.
+        party_id: The party id stem.
+
+    Returns:
+        `<game-root>/parties/<party_id>.json`.
+    """
+    return parties_dir(game_root) / f"{party_id}.json"
+
+
+def find_party(game_root: Path, party_id: str) -> Path:
+    """Locate a built party document by id, for `session_new(party_ref=…)`.
+
+    Args:
+        game_root: The resolved game-root directory.
+        party_id: The party id stem.
+
+    Returns:
+        The matching path.
+
+    Raises:
+        ValueError: If no party document exists for `party_id`.
+    """
+    path = party_path(game_root, party_id)
+    if not path.is_file():
+        raise ValueError(f"no party found for party_ref {party_id!r} under {parties_dir(game_root)}")
+    return path
+
+
+def saves_dir(game_root: Path) -> Path:
+    """The game-directory subtree holding saved games, one directory per adventure.
+
+    Args:
+        game_root: The resolved game-root directory.
+
+    Returns:
+        `<game-root>/adventures`. Not guaranteed to exist yet.
+    """
+    return game_root / "adventures"
+
+
 def save_path(game_root: Path, adventure_id: str, save_id: str) -> Path:
     """The on-disk path for one save.
 
@@ -81,7 +141,7 @@ def save_path(game_root: Path, adventure_id: str, save_id: str) -> Path:
     Returns:
         `<game-root>/adventures/<adventure_id>/<save_id>.json`.
     """
-    return game_root / "adventures" / adventure_id / f"{save_id}.json"
+    return saves_dir(game_root) / adventure_id / f"{save_id}.json"
 
 
 def find_save(game_root: Path, save_id: str) -> Path:
@@ -101,7 +161,7 @@ def find_save(game_root: Path, save_id: str) -> Path:
     Raises:
         ValueError: If no save or more than one save matches `save_id`.
     """
-    adventures_dir = game_root / "adventures"
+    adventures_dir = saves_dir(game_root)
     matches = sorted(adventures_dir.glob(f"*/{save_id}.json")) if adventures_dir.is_dir() else []
     if not matches:
         raise ValueError(f"no save found for save_id {save_id!r} under {adventures_dir}")
