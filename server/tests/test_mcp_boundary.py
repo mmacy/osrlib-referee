@@ -28,6 +28,7 @@ async def test_lifecycle_and_execute_round_trip_through_the_mcp_boundary():
         assert not observe_result.isError
         assert observe_result.structuredContent["mode"] == "town"
         assert observe_result.structuredContent["flags"] == {"ping": True}
+        hero_id = observe_result.structuredContent["party"][0]["id"]
 
         enter_result = await client.call_tool(
             "execute", {"command": {"command_type": "enter_dungeon", "dungeon_id": DUNGEON_ID}}
@@ -49,6 +50,17 @@ async def test_lifecycle_and_execute_round_trip_through_the_mcp_boundary():
 
         adventures_result = await client.call_tool("list_adventures", {})
         assert not adventures_result.isError
+
+        sheet_result = await client.call_tool("character_sheet", {"character_id": hero_id})
+        assert not sheet_result.isError
+        assert sheet_result.structuredContent["id"] == hero_id
+        assert "thac0" in sheet_result.structuredContent
+        assert "saves" in sheet_result.structuredContent
+
+        audit_result = await client.call_tool("session_audit", {"limit": 10})
+        assert not audit_result.isError
+        assert "events" in audit_result.structuredContent
+        assert "command_count" in audit_result.structuredContent
 
         save_result = await client.call_tool("session_save", {})
         assert not save_result.isError

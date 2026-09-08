@@ -128,3 +128,52 @@ def test_legal_commands_are_split_player_intent_and_authorial():
     assert "move_party" in observation["legal_commands"]["player_intent"]
     assert "set_flag" in observation["legal_commands"]["authorial"]
     assert "set_flag" not in observation["legal_commands"]["player_intent"]
+
+
+def _town_session_with_services() -> GameSession:
+    """A session whose town carries service prose, for the town-branch assertions."""
+    base = _secret_door_adventure()
+    town = TownSpec(
+        name="Threshold",
+        description="A palisaded waystation.",
+        services=("a temple", "a smith"),
+        travel_turns=base.town.travel_turns,
+    )
+    adventure = base.model_copy(update={"town": town})
+    party = Party(members=list(build_scripted_party().members))
+    return GameSession.new(party, adventure, seed=1)
+
+
+def test_town_branch_surfaces_purse_valuables_advancement_and_service_prose():
+    session = _town_session_with_services()
+
+    observation = build_observation(session)
+
+    assert observation["mode"] == "town"
+    # The town's front-end service prose (not the mechanical healing list).
+    assert observation["area"]["id"] == "town"
+    assert observation["area"]["services"] == ["a temple", "a smith"]
+    member = observation["party"][0]
+    # The town spend surface plus the advancement fields.
+    assert "purse" in member
+    assert "valuables" in member
+    assert member["level"] == 1
+    assert member["xp"] == 0
+    assert member["next_level_xp"] == 2000  # the fighter's level-2 threshold
+    # Still scoped: never the whole adventure or the full event log.
+    assert "adventure" not in observation
+    assert "events" not in observation
+
+
+def test_dungeon_branch_omits_the_town_spend_surface_but_keeps_advancement():
+    session = _town_session_with_services()
+    session.execute(EnterDungeon(dungeon_id="vault"))
+
+    observation = build_observation(session)
+
+    member = observation["party"][0]
+    # Purse/valuables ship only in town; the advancement integers ship every turn.
+    assert "purse" not in member
+    assert "valuables" not in member
+    assert "level" in member
+    assert "next_level_xp" in member

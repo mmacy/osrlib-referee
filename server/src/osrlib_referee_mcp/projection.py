@@ -23,16 +23,47 @@ from osrlib_referee_mcp.catalog import list_command_types
 COLD_EVENT_TAIL = 20
 
 
-def _member_view(member) -> dict:
-    return {
+def _next_level_xp(member) -> int | None:
+    """The XP threshold for the member's next level, or `None` at the class cap.
+
+    Read from the class progression row (`ClassDefinition.row(level+1).xp`) — the same
+    lookup advancement uses — so the referee (and, appropriately, the player) can see how
+    close each character is to levelling. There is no level-up event to surface; this
+    field plus `XpAwardedEvent.level_after` is how an advance is inferred (work item C).
+    """
+    definition = member.definition
+    if member.level >= definition.max_level:
+        return None
+    return definition.row(member.level + 1).xp
+
+
+def _member_view(member, *, in_town: bool) -> dict:
+    view = {
         "id": member.id,
         "name": member.name,
         "class_id": member.class_id,
         "level": member.level,
+        "xp": member.xp,
+        "next_level_xp": _next_level_xp(member),
         "current_hp": member.current_hp,
         "max_hp": member.max_hp,
         "conditions": [active.condition.value for active in member.conditions],
     }
+    if in_town:
+        # The town spend surface: the purse the player buys and heals against, and the
+        # valuables they can sell. Shipped only in town, so the dungeon payload stays
+        # scoped — the advancement integers above are the only per-turn growth.
+        view["purse"] = member.inventory.purse.model_dump(mode="json")
+        view["valuables"] = [
+            {
+                "instance_id": valuable.instance_id,
+                "kind": valuable.kind,
+                "name": valuable.name,
+                "value_gp": valuable.value_gp,
+            }
+            for valuable in member.inventory.valuables
+        ]
+    return view
 
 
 def _effect_view(session, effect) -> dict:
@@ -144,6 +175,7 @@ def build_observation(session: GameSession, *, cold: bool = False) -> dict:
     """
     location = session.dungeon_state.location
     mode = session.mode.value
+    in_town = location.kind != "dungeon"
     if location.kind == "dungeon":
         area, edges = _area_and_edges(session, location)
         location_view = {
@@ -154,7 +186,16 @@ def build_observation(session: GameSession, *, cold: bool = False) -> dict:
             "facing": location.facing.value,
         }
     else:
-        area = {"id": "town", "name": session.adventure.town.name, "description": session.adventure.town.description}
+        town = session.adventure.town
+        # `services` is the town's front-end prose (flavour: "a temple, a smith"), *not*
+        # the mechanical healing-service list — that price table is static reference data,
+        # delivered off the play surface by the `gametool services` CLI.
+        area = {
+            "id": "town",
+            "name": town.name,
+            "description": town.description,
+            "services": list(town.services),
+        }
         edges = {}
         location_view = {"kind": "town"}
 
@@ -166,7 +207,7 @@ def build_observation(session: GameSession, *, cold: bool = False) -> dict:
         "location": location_view,
         "area": area,
         "edges": edges,
-        "party": [_member_view(member) for member in session.party.members],
+        "party": [_member_view(member, in_town=in_town) for member in session.party.members],
         "effects": [
             _effect_view(session, effect) for effect in session.ledger.effects if effect.target_ref in member_ids
         ],
@@ -178,3 +219,55 @@ def build_observation(session: GameSession, *, cold: bool = False) -> dict:
         tail = session.event_log[-COLD_EVENT_TAIL:]
         observation["events"] = [entry if isinstance(entry, dict) else entry.model_dump(mode="json") for entry in tail]
     return observation
+
+
+def build_character_sheet(session: GameSession, character_id: str) -> dict:
+    """Build the full derived character sheet for one party member.
+
+    osrlib computes THAC0, AC, saves, movement, and spell slots as properties from
+    stored state — never storing them, so they can't desync — and `observe` does not
+    ship them per turn. This read materializes them on request from the **live** session
+    (the party member and the session's ruleset), giving parity with `bx-referee`'s sheet
+    display and the numbers the `character`/`session` skills render on demand. It is a
+    play-server tool because it needs the live member.
+
+    Args:
+        session: The running session.
+        character_id: A party member's id (from `observe`'s `party[].id`).
+
+    Returns:
+        The derived sheet: identity, scores, level/xp/next-threshold, hit points, the
+        combat numbers (THAC0, attack bonus, both AC formats), the five saves, movement
+        rate, languages, spell slots, and the caster's book/memorized spells.
+
+    Raises:
+        ValueError: If `character_id` names no party member.
+    """
+    member = session.member(character_id)
+    definition = member.definition
+    row = definition.row(member.level)
+    return {
+        "id": member.id,
+        "name": member.name,
+        "class_id": member.class_id,
+        "class_name": definition.name,
+        "race": member.race,
+        "alignment": member.alignment.value,
+        "level": member.level,
+        "xp": member.xp,
+        "next_level_xp": _next_level_xp(member),
+        "max_hp": member.max_hp,
+        "current_hp": member.current_hp,
+        "scores": {ability.value: score for ability, score in member.scores.items()},
+        "thac0": member.thac0,
+        "attack_bonus": member.attack_bonus,
+        "armour_class": member.armour_class,
+        "armour_class_ascending": member.armour_class_ascending,
+        "saves": member.saves.model_dump(mode="json"),
+        "movement_rate": member.movement_rate(session.ruleset),
+        "languages": list(member.languages),
+        "spell_slots": list(row.spell_slots),
+        "spell_book": list(member.spell_book),
+        "memorized_spells": [prepared.model_dump(mode="json") for prepared in member.memorized_spells],
+        "conditions": [active.condition.value for active in member.conditions],
+    }

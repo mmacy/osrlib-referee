@@ -17,7 +17,14 @@ from osrlib.crawl.session import GameSession
 from osrlib.persistence import load_game, save_game
 
 from osrlib_referee_mcp.content import default_party_document
-from osrlib_referee_mcp.gamedir import find_save, game_bundles_dir, repo_adventures_dir, resolve_game_root, save_path
+from osrlib_referee_mcp.gamedir import (
+    find_party,
+    find_save,
+    game_bundles_dir,
+    repo_adventures_dir,
+    resolve_game_root,
+    save_path,
+)
 from osrlib_referee_mcp.registry import resolve_adventure, resolve_prose
 
 
@@ -65,15 +72,23 @@ class SessionStore:
         *,
         seed: int | None,
         party_document: dict[str, object] | None,
+        party_ref: str | None = None,
         save_id: str | None,
     ) -> dict[str, object]:
         """Start a fresh session and persist it immediately.
 
+        Party resolution is by precedence, not error: an inline `party_document` wins,
+        else a `party_ref` id is loaded from `<game-root>/parties/`, else the frozen
+        pregen roster. Supplying both an inline document and a ref resolves in the
+        document's favour rather than rejecting — one fewer error path, and the common
+        case (exactly one of the three) is unambiguous either way.
+
         Args:
             adventure_id: A native adventure id or a discovered bundle id.
             seed: The master seed; a fresh, unpredictable seed is drawn if omitted.
-            party_document: A `party_to_document` document; the frozen pregen roster
-                if omitted.
+            party_document: A `party_to_document` document; wins the precedence when set.
+            party_ref: A party id built by `chargen party`, resolved server-side against
+                `<game-root>/parties/` so the whole document stays off the wire.
             save_id: The save slot stem this session will persist under; defaults to the
                 `adventure_id` (a globally-unique default slot, so coexisting adventures
                 never collide on the shared literal `"default"`).
@@ -82,12 +97,12 @@ class SessionStore:
             `{schema_version, engine_version, save_id}` — never the seed.
 
         Raises:
-            ValueError: `adventure_id` resolves to neither a native adventure nor a bundle.
+            ValueError: `adventure_id` resolves to nothing, or `party_ref` names no party.
             ContentValidationError: The adventure, bundle, or party document is malformed.
         """
         resolved = resolve_adventure(adventure_id, self._bundle_roots)
         resolved_save_id = save_id if save_id is not None else adventure_id
-        document = party_document if party_document is not None else default_party_document()
+        document = self._resolve_party_document(party_document, party_ref)
         members = party_from_document(document)
         resolved_seed = seed if seed is not None else _fresh_seed()
         session = GameSession.new(Party(members=members), resolved.adventure, seed=resolved_seed)
@@ -98,6 +113,16 @@ class SessionStore:
         self.needs_recap = True
         self._persist()
         return {**session.metadata, "save_id": resolved_save_id}
+
+    def _resolve_party_document(
+        self, party_document: dict[str, object] | None, party_ref: str | None
+    ) -> dict[str, object]:
+        """Resolve the party by precedence: inline document > party_ref > pregen default."""
+        if party_document is not None:
+            return party_document
+        if party_ref is not None:
+            return json.loads(find_party(self.game_root, party_ref).read_text())
+        return default_party_document()
 
     def load(self, save_id: str) -> dict[str, object]:
         """Load a save by id and make it the active session.
