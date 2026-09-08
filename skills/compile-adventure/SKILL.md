@@ -21,6 +21,34 @@ Compile a module only if it is **openly licensed (OGL/CC) or original-authored**
 
 If the module's license is unclear, stop and ask the user. Do not compile-and-commit on assumption.
 
+## Stage 0 — get the module's text
+
+Every stage below assumes you have the module as text. If the user hands you Markdown, use it. Otherwise check the **shelf-of-holding index** (`~/repos/shelf-of-holding`), which already stores one Markdown text per page for every PDF under `~/rpgbook`, converted by the best converter that covered that page. Reading it costs a fraction of reading the PDF.
+
+Find the book, then pull the pages you need:
+
+```bash
+uv run --project server python -m osrlib_referee_mcp.bundletool shelf-find "isle of dread"
+uv run --project server python -m osrlib_referee_mcp.bundletool shelf-text bf860050 --pages 4-16 --out <scratch>/x01.md
+```
+
+`shelf-find` prints a sha prefix, the text coverage, and the path of every match. Pass the **sha prefix** to `shelf-text`: a title fragment often matches several cuts of one product, and the OSE, 5e, and Shadowdark editions of a module are three separate books with three separate keys. `shelf-text` writes Markdown with an HTML comment before each page naming the PDF page and the converter behind it, and it reports on stderr any requested page the index has no text for. Read the file you wrote rather than paging the PDF.
+
+Four things to get right:
+
+- **`--pages` takes PDF page indexes, not the page numbers printed on the page.** Front matter offsets them: X1's printed page 24 is PDF page 25. Establish the offset once against a known page before you trust a range.
+- **Maps do not survive OCR.** A map page comes back as its labels in reading order with the geometry gone, so stage 1's grid never comes from this text. Read map pages from the PDF itself — `Read` the file with `pages: "12"` — and lay out the grid from the image.
+- **Some pages read badly and look fine.** A book whose text layer is junk, or a table MinerU merged across a page break, yields plausible-looking wrong text. When an area's numbers or a table's rows look off, check that page against the PDF.
+- **The index is optional.** With no index on the machine, or a module that is not on the shelf, both commands say so and exit 1. Compile from whatever text the user supplies.
+
+The shelf is mostly commercial product. A module being easy to read here says nothing about where its bundle may live — the licensing gate above decides that, unchanged.
+
+These commands only ever read the index, and never through the `shelf` CLI, whose `scan`, `triage`, `convert`, and `gold` subcommands write. The store is live, and a bulk conversion run may be writing to it. When one is running, point `SHELF_DB` at one of shelf-of-holding's dated snapshots instead:
+
+```bash
+export SHELF_DB=~/.shelf-snapshots/shelf-20260907T1625.db
+```
+
 ## The compile stages
 
 Work one dungeon level at a time. For each:
