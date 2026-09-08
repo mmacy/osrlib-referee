@@ -1,6 +1,6 @@
 ---
 name: referee
-description: Entry point and router for Old-School Essentials (B/X) tabletop play on the osrlib-referee engine. Routes to character creation, a new or resumed adventure, and the play loop. Use when starting or continuing an OSE session, or when the user mentions OSE, B/X, a referee, a game master, or an adventure.
+description: Entry point and router for B/X (Basic/Expert) tabletop play on the osrlib-referee engine. Routes to character creation, a new or resumed adventure, and the play loop. Use when starting or continuing a B/X session, or when the user mentions B/X, OSE, old-school D&D, a referee, a game master, or an adventure.
 allowed-tools: mcp__plugin_osrlib-referee_osrlib__list_adventures AskUserQuestion
 ---
 
