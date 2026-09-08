@@ -16,6 +16,7 @@ from osrlib.crawl.dungeon import (
 from osrlib.crawl.party import Party
 from osrlib.crawl.session import GameSession
 
+from osrlib_referee_mcp.catalog import list_command_types
 from osrlib_referee_mcp.content import (
     ADVENTURE_ID,
     DUNGEON_ID,
@@ -98,8 +99,8 @@ def test_referee_view_unmasks_undiscovered_secret_doors():
     assert observation["edges"]["east"]["secret"] is True
 
 
-@pytest.mark.anyio
-async def test_referee_view_shows_real_monster_hp_in_battle():
+async def _delve_into_encounter_a():
+    """Walk the scripted prefix at `SESSION_SEED` until the giant rats open battle."""
     await session_new(ADVENTURE_ID, seed=SESSION_SEED)
     await execute(EnterDungeon(dungeon_id=DUNGEON_ID))
 
@@ -111,13 +112,38 @@ async def test_referee_view_shows_real_monster_hp_in_battle():
     await execute(OpenDoor(direction=Direction.EAST))
     await execute(MoveParty(direction=Direction.EAST))
     await execute(MoveParty(direction=Direction.EAST))
+    assert observe()["mode"] == "battle"
+
+
+@pytest.mark.anyio
+async def test_referee_view_shows_real_monster_hp_in_battle():
+    await _delve_into_encounter_a()
 
     observation = observe()
 
-    assert observation["mode"] == "battle"
     monster = observation["encounter"]["groups"][0]["monsters"][0]
     assert monster["current_hp"] == monster["max_hp"]
     assert monster["current_hp"] > 0
+
+
+@pytest.mark.anyio
+async def test_encounter_block_carries_the_round_roster_the_engine_will_accept():
+    """The four id tuples that decide which declarations `ResolveBattleRound` accepts.
+
+    Without them the referee has to guess a formation width, and a wrong guess costs the
+    party its round. The barrow crypt's level is one cell tall, so 10 feet of frontage
+    seats two of the three members — the front rank is a strict subset of the declarers,
+    and that gap is the whole reason these ship.
+    """
+    await _delve_into_encounter_a()
+
+    encounter = observe()["encounter"]
+
+    party_ids = [member["id"] for member in observe()["party"]]
+    assert encounter["declarers"] == party_ids  # all three are living and able
+    assert encounter["front_rank"] == party_ids[:2]  # a 10-foot corridor seats two
+    assert encounter["immobile"] == []
+    assert encounter["reloading"] == []
 
 
 def test_legal_commands_are_split_player_intent_and_authorial():
@@ -128,6 +154,26 @@ def test_legal_commands_are_split_player_intent_and_authorial():
     assert "move_party" in observation["legal_commands"]["player_intent"]
     assert "set_flag" in observation["legal_commands"]["authorial"]
     assert "set_flag" not in observation["legal_commands"]["player_intent"]
+
+
+def test_referee_commands_barred_from_a_terminal_mode_still_read_as_authorial():
+    """`SpawnMonsters` and `PlaceParty` are the referee's, not a phase of play's.
+
+    Engine 1.5.0 barred them from an ended session, so "legal in every mode" no longer
+    identifies an authorial command — only "legal in every *live* mode" does. Classifying
+    them by the old test would file the constitution's own escape hatch under player
+    intent, and a terminal session would still advertise commands that resume play.
+    """
+    live = list_command_types("exploring")
+    assert "spawn_monsters" in live["authorial"]
+    assert "place_party" in live["authorial"]
+    assert live["player_intent"] and "spawn_monsters" not in live["player_intent"]
+
+    ended = list_command_types("victory")
+    assert ended["player_intent"] == []
+    assert "spawn_monsters" not in ended["authorial"]
+    assert "place_party" not in ended["authorial"]
+    assert "set_flag" in ended["authorial"]  # the referee can still land an adventure's rewards
 
 
 def _town_session_with_services() -> GameSession:

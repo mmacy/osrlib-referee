@@ -17,6 +17,7 @@ so the skill can recap.
 from osrlib.core.effects import Condition, has_condition
 from osrlib.crawl.dungeon import Direction, EdgeKind, edge_ref
 from osrlib.crawl.session import GameSession
+from osrlib.crawl.views import build_player_view
 
 from osrlib_referee_mcp.catalog import list_command_types
 
@@ -88,6 +89,17 @@ def _monster_view(session, monster_id: str) -> dict:
 
 
 def _encounter_view(session) -> dict | None:
+    """The encounter block: the groups with referee-side monster detail, plus the round's roster.
+
+    The four id tuples — `declarers`, `front_rank`, `immobile`, and `reloading` — are the
+    engine's own answer to "which declarations will this round accept", each one standing
+    against a rejection that would otherwise bounce the whole `ResolveBattleRound`. Formation
+    width is measured from the space the party stands in, so the front rank is a property of
+    the room and not a number this server may assume. They come from osrlib's player view
+    rather than being recomputed here: the engine owns the rule, and the ids are public facts
+    the players know at the table anyway. The groups stay hand-built, because the referee sees
+    per-monster HP and ids that the player view masks.
+    """
     state = session.encounter
     if state is None:
         return None
@@ -103,11 +115,16 @@ def _encounter_view(session) -> dict | None:
         }
         for group in state.groups
     ]
+    roster = build_player_view(session).encounter
     return {
         "kind": state.kind,
         "stance": state.stance,
         "groups": groups,
         "pursuit_gap_feet": state.pursuit.gap_feet if state.pursuit is not None else None,
+        "declarers": list(roster.declarers),
+        "front_rank": list(roster.front_rank),
+        "immobile": list(roster.immobile),
+        "reloading": list(roster.reloading),
     }
 
 

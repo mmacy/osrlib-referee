@@ -7,7 +7,6 @@ filtered by kind and by the constitution-Article-II visibility boundary.
 
 import pytest
 from osrlib.crawl.commands import (
-    BattleDeclaration,
     EnterDungeon,
     LightSource,
     MoveParty,
@@ -17,6 +16,7 @@ from osrlib.crawl.commands import (
 )
 from osrlib.crawl.dungeon import Direction
 
+from helpers import battle_round_declarations
 from osrlib_referee_mcp.content import ADVENTURE_ID, DUNGEON_ID, LIGHT_SOURCE_ATTEMPTS, SESSION_SEED
 from osrlib_referee_mcp.server import execute, observe, session_audit, session_new
 
@@ -45,12 +45,7 @@ async def test_audit_surfaces_a_referee_roll_and_battle_rolls(_fresh_store):
     await execute(RollDice(expression="1d20"))
     # One battle round produces attack rolls (player visibility).
     group_id = observe()["encounter"]["groups"][0]["id"]
-    declarations = tuple(
-        BattleDeclaration(character_id=member["id"], action="attack", target_group_id=group_id)
-        for member in observe()["party"]
-        if member["current_hp"] > 0
-    )
-    await execute(ResolveBattleRound(declarations=declarations))
+    await execute(ResolveBattleRound(declarations=battle_round_declarations(group_id)))
 
     audit = session_audit()
     event_types = {event["event_type"] for event in audit["events"]}

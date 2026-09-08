@@ -82,11 +82,17 @@ _SCRIPT_PARTY = (
 # The tunable session seed: the exact scripted command prefix (EnterDungeon, the
 # LightSource attempts it takes to catch, OpenDoor, MoveParty into trap_room) springs
 # the trap at this seed, wins encounter_a with a comfortable margin (no member below
-# 60% HP), and — though this leg is a content-level guarantee, not a seed lever, see
+# 80% HP), and — though this leg is a content-level guarantee, not a seed lever, see
 # the module docstring — cleanly escapes encounter_b. Found by search over the exact
 # scripted prefix. Distinct from `PARTY_CREATION_SEED`.
-SESSION_SEED = 187
-LIGHT_SOURCE_ATTEMPTS = 5
+#
+# The margin is tighter than a three-member roster suggests, because the level is one
+# cell tall: 10 feet of frontage seats two characters side by side, so the front rank is
+# two and the third member holds until a rank-mate falls. osrlib measures formation
+# width from the space the party stands in (engine 1.7.0), which makes this corridor's
+# geometry a live combat constraint rather than flavour.
+SESSION_SEED = 708
+LIGHT_SOURCE_ATTEMPTS = 3
 """How many `LightSource` commands the scripted delve issues at `SESSION_SEED` before
 the torch catches. Fixed alongside the seed — the golden test pins this exact count."""
 

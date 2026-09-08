@@ -9,7 +9,6 @@ eventless level-up. All through the real server tool functions.
 import pytest
 from osrlib.core.items import MagicItemInstance, ValuableInstance
 from osrlib.crawl.commands import (
-    BattleDeclaration,
     EnterDungeon,
     LightSource,
     MoveParty,
@@ -22,6 +21,7 @@ from osrlib.crawl.commands import (
 )
 from osrlib.crawl.dungeon import Direction
 
+from helpers import battle_round_declarations
 from osrlib_referee_mcp.content import ADVENTURE_ID, DUNGEON_ID, LIGHT_SOURCE_ATTEMPTS, SESSION_SEED
 from osrlib_referee_mcp.server import execute, observe, session_new
 
@@ -113,12 +113,7 @@ async def test_return_trip_awards_monster_and_treasure_xp_and_levels_up(_fresh_s
     while observe()["mode"] == "battle" and rounds < 20:
         rounds += 1
         group_id = observe()["encounter"]["groups"][0]["id"]
-        declarations = tuple(
-            BattleDeclaration(character_id=member["id"], action="attack", target_group_id=group_id)
-            for member in observe()["party"]
-            if member["current_hp"] > 0
-        )
-        await execute(ResolveBattleRound(declarations=declarations))
+        await execute(ResolveBattleRound(declarations=battle_round_declarations(group_id)))
     assert observe()["mode"] == "exploring", "encounter_a did not resolve to victory"
 
     # Recover a large treasure after the departure snapshot: 1 gp = 1 XP on return. A
