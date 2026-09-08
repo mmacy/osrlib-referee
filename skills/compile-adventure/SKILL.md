@@ -16,7 +16,7 @@ This is **SRD-only** content: every keyed `template_id` and feature `item_id` mu
 
 Compile a module only if it is **openly licensed (OGL/CC) or original-authored**. Verify the license; never assume it. This decides where the bundle lives:
 
-- **Open or original** → the in-repo `adventures/<bundle_id>/` directory. It commits with the repo.
+- **Open or original** → the plugin's own `${CLAUDE_PLUGIN_ROOT}/adventures/<bundle_id>/` directory, which is the checkout when you run from one. It commits with the repo.
 - **Anything else (a commercial module, verbatim prose you can't relicense)** → the user's game directory, `~/osr-games/bundles/<bundle_id>/` (or wherever `OSRLIB_REFEREE_GAME_ROOT` points). **Never commit it.**
 
 If the module's license is unclear, stop and ask the user. Do not compile-and-commit on assumption.
@@ -28,8 +28,8 @@ Every stage below assumes you have the module as text. If the user hands you Mar
 Find the book, then pull the pages you need:
 
 ```bash
-uv run --project server python -m osrlib_referee_mcp.bundletool shelf-find "isle of dread"
-uv run --project server python -m osrlib_referee_mcp.bundletool shelf-text bf860050 --pages 4-16 --out <scratch>/x01.md
+uv run --project ${CLAUDE_PLUGIN_ROOT}/server python -m osrlib_referee_mcp.bundletool shelf-find "isle of dread"
+uv run --project ${CLAUDE_PLUGIN_ROOT}/server python -m osrlib_referee_mcp.bundletool shelf-text bf860050 --pages 4-16 --out <scratch>/x01.md
 ```
 
 `shelf-find` prints a sha prefix, the text coverage, and the path of every match. Pass the **sha prefix** to `shelf-text`: a title fragment often matches several cuts of one product, and the OSE, 5e, and Shadowdark editions of a module are three separate books with three separate keys. `shelf-text` writes Markdown with an HTML comment before each page naming the PDF page and the converter behind it, and it reports on stderr any requested page the index has no text for. Read the file you wrote rather than paging the PDF.
@@ -56,7 +56,7 @@ Work one dungeon level at a time. For each:
 1. **Geometry → grid + edges.** Lay the module's map onto the 10′ cell grid (`x` east, `y` south from the northwest corner). Walls are the default — you declare only the *passages*: every open edge and every door is an explicit entry in `edges`, keyed by the canonical edge key. **Compute every edge key with the helper, never by hand:**
 
    ```bash
-   uv run --project server python -m osrlib_referee_mcp.bundletool edge-key 3 2 east
+   uv run --project ${CLAUDE_PLUGIN_ROOT}/server python -m osrlib_referee_mcp.bundletool edge-key 3 2 east
    ```
 
    A non-grid or organic map is *approximated* to the grid — record each such approximation in `manifest.approximations.geometry`. Set the level `entrance` to the cell town-travel and `EnterDungeon` land on.
@@ -72,10 +72,12 @@ Work one dungeon level at a time. For each:
 
 ## The review gates — a bundle is not done until both pass
 
+`<bundle_dir>` below is the directory the licensing gate sent the bundle to. Pass the path, not a bare id — neither command resolves ids, and the session's working directory is the player's game directory, not the checkout.
+
 1. **`validate_bundle`** — the deterministic gate. It reconstructs the `Adventure`, resolves every keyed/feature/wandering id against the stock catalog, and checks edge-key integrity:
 
    ```bash
-   uv run --project server python -m osrlib_referee_mcp.bundletool validate adventures/<bundle_id>
+   uv run --project ${CLAUDE_PLUGIN_ROOT}/server python -m osrlib_referee_mcp.bundletool validate <bundle_dir>
    ```
 
    Fix every error it reports (an unresolved `template_id` usually means a reskin named a template that doesn't exist; a "boundary edge" or "not a canonical key" means an edge-key mistake). Do not proceed until it prints `OK`.
@@ -83,7 +85,7 @@ Work one dungeon level at a time. For each:
 2. **Visual map-diff** — the human gate. Render the compiled map and compare it, cell for cell, against the source module's map:
 
    ```bash
-   uv run --project server python -m osrlib_referee_mcp.bundletool render-map adventures/<bundle_id>
+   uv run --project ${CLAUDE_PLUGIN_ROOT}/server python -m osrlib_referee_mcp.bundletool render-map <bundle_dir>
    ```
 
    Present the render to the user alongside the source map. Geometry is the likeliest place fidelity slips; this gate catches a transposed passage or a missing door that `validate_bundle` cannot.

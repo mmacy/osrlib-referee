@@ -23,9 +23,20 @@ osrlib-referee is an MCP-enabled B/X tabletop RPG referee. A stdio MCP server ho
 
 ## Running locally
 
+To work on the plugin, load it from the checkout:
+
 ```bash
 claude --plugin-dir .
 ```
+
+To **play**, launch from the game directory instead, the way an installed plugin runs:
+
+```bash
+cd ~/osr-games
+claude --plugin-dir ~/repos/osrlib-referee
+```
+
+The referee is the main agent of a play session, so this guide has no business in its context window — and from `~/osr-games` it isn't loaded. Skills resolve the server through `${CLAUDE_PLUGIN_ROOT}`, never a path relative to the working directory, so every CLI works from either.
 
 ## Authoritative references
 
