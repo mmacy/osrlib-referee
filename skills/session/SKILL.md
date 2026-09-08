@@ -29,7 +29,7 @@ The lifecycle skill: resume a saved game with a recap, save at a pause, and insp
 
 ### The optional journal
 
-You may write a human-readable journal alongside the save — a session log and current-situation note, `bx-referee`'s `SESSION.md` role — as a **convenience for the player and for recaps, never canonical.** Write it as a `.md` sibling of the save in the game directory:
+You may write a human-readable journal alongside the save — a session log and current-situation note — as a **convenience for the player and for recaps, never canonical.** Write it as a `.md` sibling of the save in the game directory:
 
 ```
 <game-root>/adventures/<adventure_id>/<save_id>.journal.md
@@ -39,7 +39,7 @@ You may write a human-readable journal alongside the save — a session log and 
 
 ## Audit — the roll-log
 
-`bx-referee` has no roll-log; it resolves rolls silently and hides target numbers. osrlib-referee can do what it structurally cannot: the engine records every roll, and `session_audit` surfaces the real trajectory — dice rolls, attack and save resolutions, XP awards.
+The engine records every roll, and `session_audit` surfaces the real trajectory — dice rolls, attack and save resolutions, XP awards.
 
 ```
 session_audit(kinds?, visibility?, limit?)

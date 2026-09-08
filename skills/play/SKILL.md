@@ -6,7 +6,7 @@ allowed-tools: mcp__plugin_osrlib-referee_osrlib__execute mcp__plugin_osrlib-ref
 
 # Play
 
-One loop owns exploration, encounters, battle, and town — there is no separate combat skill re-deriving anything the engine already computed. `osrlib` holds the live session behind the MCP boundary; you narrate from what it returns and adjudicate freeform intent through the authorial commands.
+One loop owns exploration, encounters, battle, and town. `osrlib` holds the live session behind the MCP boundary; you narrate from what it returns and adjudicate freeform intent through the authorial commands.
 
 **Read [the referee's constitution](../referee/references/constitution.md) before doing anything else.** It is the supreme, non-negotiable set of rules governing all referee behavior. The central rule it establishes: the engine computes everything — no THAC0, no target numbers, no hit-point arithmetic, ever, from you.
 
@@ -62,7 +62,7 @@ The town commands are already in the `AnyCommand` union you `execute` — each `
 
 **The sharp edge:** returning home is not a town command. `TravelToTown` is an `EXPLORING` command issued while standing on the dungeon **entrance cell** — walk the party back there first. `EnterDungeon` is how you leave town; `TravelToTown` is how you come back.
 
-**Return-trip XP is automatic — and a free win over `bx-referee`.** On `TravelToTown`, the engine awards `monster_xp` + `treasure_xp` (1 gp recovered = 1 XP) automatically, emitting one `AdventureXpAwardEvent` (with the totals and per-head `share`) then a per-survivor `XpAwardedEvent`. Narrate the award from those events; never compute an XP total yourself. `bx-referee` never implements treasure XP, so this beat is parity-plus for free. Because an award can cross a threshold, this is exactly where a level-up fires.
+**Return-trip XP is automatic.** On `TravelToTown`, the engine awards `monster_xp` + `treasure_xp` (1 gp recovered = 1 XP) automatically, emitting one `AdventureXpAwardEvent` (with the totals and per-head `share`) then a per-survivor `XpAwardedEvent`. Narrate the award from those events; never compute an XP total yourself. Because an award can cross a threshold, this is exactly where a level-up fires.
 
 ## Level-up
 
@@ -70,9 +70,8 @@ Advancement is **engine-automatic and eventless.** There is no `LevelUp` command
 
 - **Infer the advance:** when a member's `XpAwardedEvent.level_after` is higher than the level they held before the award, announce the new level. Read the **new max HP** from `observe` (or `character_sheet(character_id)` for the full new derived sheet — new THAC0, saves, spell slots — to narrate any new capability).
 - **Never fabricate the hit-die roll.** The engine rolled it and committed the result, but emits it in no event; report the outcome (the new max HP `observe` now shows), never an invented die (constitution Article III.1 / VII.3).
-- **Two honest divergences from `bx-referee`, narrated as osrlib actually behaves:**
-  - **Level-up does not restore HP.** osrlib adds the rolled HP to both max and current, but heals no existing damage — a wounded character who levels is **still wounded**. Never narrate `bx-referee`'s full-heal-on-level.
-  - **One level per *award*, not one per session, and no separate level-up step.** The engine advances inline and clamps one level per award; there is no skill hop and no once-per-session cap. Narrate it in place.
+- **Level-up does not restore HP.** osrlib adds the rolled HP to both max and current and heals no existing damage — a wounded character who levels is **still wounded**.
+- **One level per *award*.** The engine advances inline and clamps one level per award; there is no separate level-up step, no skill hop, and no once-per-session cap. Narrate it in place.
 
 ## Sharp edges to hold onto
 
