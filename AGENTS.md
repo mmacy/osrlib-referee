@@ -58,6 +58,7 @@ Spawn a fresh subagent as a skeptical senior reviewer. Give it an ordered readin
 
 - Python ≥ 3.14 (osrlib's floor). Package management with `uv` exclusively (`uv add`, `uv sync`, `uv run`) — never `pip`. The server is a `uv` project under `server/`.
 - Format with `ruff format`, lint with `ruff check`, test with `pytest` (not unittest). Run the suite before committing.
+- Commit tests only where the task asks for them or the suite already covers that kind of change, sized like the neighbouring test files. Scratch checks and one-off verification scripts stay out of the repo.
 - Type hints use built-in generics (`list[str]`, `dict[str, int]`). Do not import `List`/`Dict`/`Tuple` from `typing`, and do not use `from __future__ import annotations`.
 - Docstrings are Google style, written in Markdown, max line length 120.
 - Markdown: blank lines around headings, lists, code blocks, and tables; sentence-case headings; no `---` dividers.
