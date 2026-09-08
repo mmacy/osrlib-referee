@@ -62,6 +62,13 @@ uv run --project server python -m osrlib_referee_mcp.bundletool render-map adven
 uv run --project server python -m osrlib_referee_mcp.bundletool edge-key 3 2 east
 ```
 
+Getting the module's text is the compile's first step, and the same CLI reads it out of a [shelf-of-holding](https://github.com/mmacy/shelf-of-holding) index when one is on the machine — one Markdown text per page, already converted, instead of paging a PDF. The index is optional, and both commands are read-only: they open it through a read-only SQLite connection and never invoke the `shelf` CLI, whose commands write. Set `SHELF_DB` to read a snapshot instead of the live store.
+
+```bash
+uv run --project server python -m osrlib_referee_mcp.bundletool shelf-find "isle of dread"
+uv run --project server python -m osrlib_referee_mcp.bundletool shelf-text <sha-prefix> --pages 4-16 --out module.md
+```
+
 A compiled bundle for an openly-licensed or original module commits to `adventures/`. A bundle for a non-open module stays private in `<game-root>/bundles/` and is never committed. For the rules on that, see the Licensing section of `AGENTS.md`. Every keyed id resolves against the stock SRD catalog, so bundles inject no custom content.
 
 ## Parity with bx-referee
