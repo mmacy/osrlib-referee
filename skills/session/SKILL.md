@@ -15,7 +15,7 @@ The lifecycle skill: resume a saved game with a recap, save at a pause, and insp
 1. **Enumerate saves.** Read the game directory with the `gametool` CLI via `Bash` (a filesystem read, off the play surface):
 
    ```bash
-   uv run --project server python -m osrlib_referee_mcp.gametool saves
+   uv run --project ${CLAUDE_PLUGIN_ROOT}/server python -m osrlib_referee_mcp.gametool saves
    ```
 
    It returns `{saves: [{adventure_id, save_id, schema_version, engine_version, mtime}, …]}`, newest first. If there's exactly one, use it; otherwise `AskUserQuestion` which `save_id` to continue.

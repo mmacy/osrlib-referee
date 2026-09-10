@@ -15,7 +15,7 @@ Build a party the engine can start. Every die — ability scores, hit points, st
 Character creation runs off the play server, as a CLI (the once-per-campaign, pre-session shape — like `compile-adventure`'s `bundletool`), so play sessions pay it zero standing schema. Invoke it with `Bash`:
 
 ```bash
-uv run --project server python -m osrlib_referee_mcp.chargen <subcommand> …
+uv run --project ${CLAUDE_PLUGIN_ROOT}/server python -m osrlib_referee_mcp.chargen <subcommand> …
 ```
 
 The **seed carries the whole roll state** — there is no scratch file. `roll` emits the scores and the legal-class menu; `build` re-derives the same scores, then rolls HP and gold once the class is known, and finalizes. Same seed + same choices ⇒ byte-identical character. Pick a distinct seed per character (any integer — e.g. a timestamp or an incrementing counter); a **"reroll" is simply a new seed**, which is why it is auditable. osrlib offers no in-place single-ability reroll and no 4d6-drop-lowest / max-HP method — those are documented engine-limited gaps, not something to fake.
@@ -42,10 +42,10 @@ Build each member to its own scratch file, then assemble:
 
 ```bash
 BUILD=$(mktemp -d)
-uv run --project server python -m osrlib_referee_mcp.chargen build --seed 101 --class fighter --alignment lawful \
+uv run --project ${CLAUDE_PLUGIN_ROOT}/server python -m osrlib_referee_mcp.chargen build --seed 101 --class fighter --alignment lawful \
   --buy sword --buy chainmail --equip sword --equip chainmail --name Brakka --out "$BUILD/brakka.json"
 # …repeat for each member…
-uv run --project server python -m osrlib_referee_mcp.chargen party --out heroes "$BUILD/brakka.json" "$BUILD/wynn.json"
+uv run --project ${CLAUDE_PLUGIN_ROOT}/server python -m osrlib_referee_mcp.chargen party --out heroes "$BUILD/brakka.json" "$BUILD/wynn.json"
 ```
 
 `chargen party --out <party_id>` writes the stamped party document to `<game-root>/parties/<party_id>.json` (the game directory, `~/osr-games` by default or wherever `OSRLIB_REFEREE_GAME_ROOT` points). Report the `party_id` back — that is what starts the adventure: the `play`/`referee` flow passes it as `session_new(party_ref=<party_id>)`, so the whole party document never crosses the conversation wire. Members carry no entity ids yet; the engine assigns them when the session begins.
