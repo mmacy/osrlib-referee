@@ -16,7 +16,7 @@ This is **SRD-only** content: every keyed `template_id` and feature `item_id` mu
 
 Compile a module only if it is **openly licensed (OGL/CC) or original-authored**. Verify the license; never assume it. This decides where the bundle lives:
 
-- **Open or original** → the plugin's own `${CLAUDE_PLUGIN_ROOT}/adventures/<bundle_id>/` directory, which is the checkout when you run from one. It commits with the repo.
+- **Open or original** → the plugin's own `${CLAUDE_PLUGIN_ROOT}/adventures/<bundle_id>/` directory, which is the repo checkout when you launch with `--plugin-dir .`. It commits with the repo.
 - **Anything else (a commercial module, verbatim prose you can't relicense)** → the user's game directory, `~/osr-games/bundles/<bundle_id>/` (or wherever `OSRLIB_REFEREE_GAME_ROOT` points). **Never commit it.**
 
 If the module's license is unclear, stop and ask the user. Do not compile-and-commit on assumption.
@@ -72,7 +72,7 @@ Work one dungeon level at a time. For each:
 
 ## The review gates — a bundle is not done until both pass
 
-`<bundle_dir>` below is the directory the licensing gate sent the bundle to. Pass the path, not a bare id — neither command resolves ids, and the session's working directory is the player's game directory, not the checkout.
+`<bundle_dir>` below is the directory the licensing gate sent the bundle to. Pass the path, not a bare id: `validate` and `render-map` both take a directory, and the session's working directory is the player's game directory rather than the checkout.
 
 1. **`validate_bundle`** — the deterministic gate. It reconstructs the `Adventure`, resolves every keyed/feature/wandering id against the stock catalog, and checks edge-key integrity:
 
