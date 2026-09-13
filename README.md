@@ -68,7 +68,7 @@ Compiling a module bundle changes a few things:
 
 - The engine has rules only for the monsters and items in the OSE SRD. Claude plays a creature that isn't in the SRD as the closest SRD monster, using the module's description of it, and the bundle's manifest lists every such swap.
 - Claude redraws the map on a square grid, so caves and odd shapes get approximated.
-- The engine has no rule for a puzzle, a custom magic item, or a creature whose special ability is the whole fight. Claude flags those while compiling and runs them by hand during play, rolling dice through the engine as needed.
+- The engine has no rule for a puzzle, a custom magic item, or a monster whose special power is the point of the encounter, where swapping in a stock SRD monster would lose what the fight is about. Claude flags those while compiling and runs them by hand during play, rolling dice through the engine as needed.
 
 If a module's centerpiece is a creature that no SRD monster resembles, the bundle won't do it justice. That's the one kind of module this plugin doesn't handle well yet.
 
