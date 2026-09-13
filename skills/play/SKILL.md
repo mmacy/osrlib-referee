@@ -48,9 +48,9 @@ Town is a first-class mode, not just a bookend — a fresh session starts there,
 `observe`'s town branch (present only in town) carries what you narrate from: each member's **purse** and **valuables**, their **level/xp/next_level_xp**, and the town's **service prose** (`area.services` — flavour, not the mechanical price list). Prices and the catalog are **not** in `observe` — they are static reference data, read off the play surface with the `gametool` CLI via `Bash`:
 
 ```bash
-uv run --project server python -m osrlib_referee_mcp.gametool catalog     # ids, names, cost_gp, lot sizes, damage
-uv run --project server python -m osrlib_referee_mcp.gametool services     # the six temple services and prices
-uv run --project server python -m osrlib_referee_mcp.gametool thresholds fighter   # a class's XP-and-level table
+uv run --project ${CLAUDE_PLUGIN_ROOT}/server python -m osrlib_referee_mcp.gametool catalog     # ids, names, cost_gp, lot sizes, damage
+uv run --project ${CLAUDE_PLUGIN_ROOT}/server python -m osrlib_referee_mcp.gametool services     # the six temple services and prices
+uv run --project ${CLAUDE_PLUGIN_ROOT}/server python -m osrlib_referee_mcp.gametool thresholds fighter   # a class's XP-and-level table
 ```
 
 The town commands are already in the `AnyCommand` union you `execute` — each `TOWN`-gated:
