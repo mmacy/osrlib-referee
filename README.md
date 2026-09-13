@@ -16,7 +16,7 @@ In Claude Code, add this repository as a plugin marketplace, then install the pl
 /plugin install osrlib-referee@osrlib-referee
 ```
 
-Restart Claude Code. From then on, Claude Code loads the plugin every time you start it. The first time you launch Claude Code after you install the plugin, expect a few extra seconds while `uv` fetches the engine's dependencies. To update later, run `/plugin marketplace update osrlib-referee` and then `/plugin update osrlib-referee@osrlib-referee`.
+Restart Claude Code. From then on, the plugin is available every time you start Claude Code. The first time you (or Claude) invoke `osrlib-referee` after you've installed it, expect a few extra seconds while `uv` fetches the `osrlib` engine's dependencies. To update later, run `/plugin marketplace update osrlib-referee` and then `/plugin update osrlib-referee@osrlib-referee`.
 
 ## Play
 
@@ -26,7 +26,7 @@ Type the referee's slash command:
 /osrlib-referee:referee
 ```
 
-Or say what you want in your own words, and Claude picks up the referee skill on its own:
+Or say what you want in your own words, and Claude should invoke the referee skill on its own:
 
 ```text
 Let's play some B/X. I'd like to start a new adventure.
@@ -38,7 +38,7 @@ Either way, the referee asks whether you want to create characters, start a new 
 
 **Adventures.** Two come with the plugin. *The Barrow Crypt* is a short one-level crypt outside town. *The Sunken Chapel of Neth* is an original module for 3-5 characters of levels 1-2. You can also bring a published module of your own. See "Bring your own module" below.
 
-**Playing.** Say what your character does. Claude describes what happens and runs the rules through the engine: exploring, encounters, combat, morale, light, encumbrance, and the rest. Back in town you can buy and sell gear and pay the temple for healing. When the party returns to town, the engine awards XP for the monsters you defeated and the treasure you brought back (1 XP per gold piece), and a character who crosses a threshold levels up on the spot.
+**Playing.** Say what your character does. Claude describes what happens and runs the rules through the engine: exploring, encounters, combat, morale, light, encumbrance, and the rest. Back in town you can buy and sell gear and pay the temple for healing. When the party returns to town, the engine awards XP for the monsters you defeated and the treasure you brought back, and a character with enough experience points gains a level.
 
 **Saving.** Ask to save at any point:
 
@@ -58,15 +58,15 @@ The referee recaps where you left off. You can also ask to see the roll log at a
 Show me the roll log.
 ```
 
-Your saves and characters live in `~/osr-games`, which appears the first time you start an adventure. To keep them somewhere else, set the `OSRLIB_REFEREE_GAME_ROOT` environment variable to another folder.
+Your saves and characters live in `~/osr-games`, which the plugin creates for you the first time you start an adventure. To keep them somewhere else, set the `OSRLIB_REFEREE_GAME_ROOT` environment variable to another folder.
 
 ## Bring your own module
 
-The referee can run a published module, but it doesn't read the PDF during play. Instead, you compile the module once into a *bundle* the engine can run, and every session after that plays from the bundle. To start, point the referee at the module's PDF or Markdown file when it asks which adventure to play. Claude takes it from there with the `compile-adventure` skill. It shows you the map to check and lists everything it had to approximate, and you sign off before the bundle is used.
+The referee can run a published module, but it doesn't read the PDF during play. Instead, you compile the module once into a *bundle* the engine can run, and every session after that plays from the bundle. To start, point the referee at the module's PDF or Markdown file when it asks which adventure to play. Claude takes it from there with the `compile-adventure` skill. It shows you the map to check and lists everything it had to approximate, and you sign off before it'll use the bundle.
 
-Compiling changes a few things:
+Compiling a module bundle changes a few things:
 
-- The engine has rules only for the monsters and items in the OSE SRD. Claude plays a creature that isn't in the SRD as the closest SRD monster, using the module's own description of it, and the bundle's manifest lists every such swap.
+- The engine has rules only for the monsters and items in the OSE SRD. Claude plays a creature that isn't in the SRD as the closest SRD monster, using the module's description of it, and the bundle's manifest lists every such swap.
 - Claude redraws the map on a square grid, so caves and odd shapes get approximated.
 - The engine has no rule for a puzzle, a custom magic item, or a creature whose special ability is the whole fight. Claude flags those while compiling and runs them by hand during play, rolling dice through the engine as needed.
 
