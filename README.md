@@ -6,29 +6,37 @@ osrlib-referee is a Claude Code plugin that runs B/X (Basic/Expert) tabletop RPG
 
 - [Claude Code](https://code.claude.com/docs/en/overview), Anthropic's command-line coding agent. The plugin runs inside it.
 - [`uv`](https://docs.astral.sh/uv/getting-started/installation/), the Python package manager that runs the plugin's server. You don't need to install Python yourself: the server needs Python 3.14 or later, and `uv` downloads it if your machine doesn't have it.
-- A clone of this repository.
 
-## Running locally
+## Installing
 
-Launch Claude Code from any folder and point `--plugin-dir` at your clone:
+Inside Claude Code, add this repository as a plugin marketplace, then install the plugin from it:
+
+```text
+/plugin marketplace add mmacy/osrlib-referee
+/plugin install osrlib-referee@osrlib-referee
+```
+
+Restart Claude Code and the plugin loads in every session. The first launch after installing takes a few seconds longer while `uv` installs the server's dependencies. After that it's fast. To get a newer version later, run `/plugin marketplace update osrlib-referee` and then `/plugin update osrlib-referee@osrlib-referee`.
+
+## Running from a clone
+
+If you're working on the plugin, or want to try a branch, clone the repository and launch Claude Code with `--plugin-dir` pointing at the clone instead of installing it:
 
 ```bash
 claude --plugin-dir /path/to/osrlib-referee
 ```
 
-That loads the plugin (the skills plus the bundled `osrlib` MCP server) for that session only. Launching without `--plugin-dir` doesn't load it. The first launch takes a few seconds longer while `uv` installs the server's dependencies. After that it's fast.
-
-If you're working on the plugin, launch from the repository checkout instead:
+That loads the plugin (the skills plus the bundled `osrlib` MCP server) for that session only, from any folder. From the checkout itself, the path is `.`:
 
 ```bash
 claude --plugin-dir .
 ```
 
-Claude Code starts the server with `uv run --project ${CLAUDE_PLUGIN_ROOT}/server osrlib-referee-mcp`, as `.mcp.json` specifies. That launch was checked on a clean profile (see work item 7 of `docs/phase-0-plan.md`): no `PATH` problems, no cold-start timeout even with no `server/.venv` and an empty `uv` cache, and the exposed tool name is `mcp__plugin_osrlib-referee_osrlib__execute`, as expected. That check covers loading with `--plugin-dir` only. An installed plugin with a read-only plugin root is untested, and is a concern for when the plugin is distributed.
+Claude Code starts the server with `uv run --project ${CLAUDE_PLUGIN_ROOT}/server osrlib-referee-mcp`, as `.mcp.json` specifies. That launch was checked on a clean profile (see work item 7 of `docs/phase-0-plan.md`): no `PATH` problems, no cold-start timeout even with no `server/.venv` and an empty `uv` cache, and the exposed tool name is `mcp__plugin_osrlib-referee_osrlib__execute`, as expected. A marketplace install was checked too: Claude Code puts the plugin under `~/.claude/plugins/cache/`, that directory is writable, and the server starts from there and connects.
 
 ## Playing
 
-In a Claude Code session with this plugin loaded (see "Running locally" above), the `referee` skill is the entry point. To start it, type its namespaced slash command:
+In a Claude Code session with this plugin loaded (see "Installing" above), the `referee` skill is the entry point. To start it, type its namespaced slash command:
 
 ```text
 /osrlib-referee:referee

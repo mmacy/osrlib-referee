@@ -16,7 +16,7 @@ osrlib-referee is an MCP-enabled B/X tabletop RPG referee. A stdio MCP server ho
 
 ## Repository layout
 
-- Plugin root: `.claude-plugin/plugin.json` + `.mcp.json` (launches the bundled server via `${CLAUDE_PLUGIN_ROOT}`, stdio transport) + `skills/`.
+- Plugin root: `.claude-plugin/plugin.json` + `.claude-plugin/marketplace.json` (the repo is its own single-plugin marketplace, so `/plugin marketplace add mmacy/osrlib-referee` works) + `.mcp.json` (launches the bundled server via `${CLAUDE_PLUGIN_ROOT}`, stdio transport) + `skills/`.
 - `server/` — the MCP server, a self-contained `uv` project (`pyproject.toml`, `uv.lock`, `src/`, `tests/`). Depends on `osrlib` and an MCP SDK.
 - `adventures/` — compiled adventure bundles. Only openly-licensed or original content is committed here; see Licensing.
 - `docs/` — the current `spec.md` and, once phases begin, `phase-N-plan.md` documents.
