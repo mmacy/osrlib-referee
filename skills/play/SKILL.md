@@ -8,7 +8,7 @@ allowed-tools: mcp__plugin_osrlib-referee_osrlib__execute mcp__plugin_osrlib-ref
 
 One loop owns exploration, encounters, battle, and town. `osrlib` holds the live session behind the MCP boundary; you narrate from what it returns and adjudicate freeform intent through the authorial commands.
 
-**Read [the referee's constitution](../referee/references/constitution.md) before doing anything else.** It is the supreme, non-negotiable set of rules governing all referee behavior. The central rule it establishes: the engine computes everything — no THAC0, no target numbers, no hit-point arithmetic, ever, from you.
+**Read [the referee's constitution](../referee/references/constitution.md) before doing anything else.** It governs all referee behavior in this plugin: the engine computes every number, and you narrate from what it returns.
 
 ## Starting a session
 
@@ -60,7 +60,7 @@ The town commands are already in the `AnyCommand` union you `execute` — each `
 - **`PurchaseHealing(character_id, service)`** — one of the six temple services (`gametool services` lists them and their prices); the engine heals and debits the purse.
 - **`EnterDungeon(dungeon_id)`** — depart town for the delve. This is the **town** command that starts an expedition; it snapshots the party's treasure valuation for the return-trip XP delta.
 
-**The sharp edge:** returning home is not a town command. `TravelToTown` is an `EXPLORING` command issued while standing on the dungeon **entrance cell** — walk the party back there first. `EnterDungeon` is how you leave town; `TravelToTown` is how you come back.
+**The sharp edge:** returning home is not a town command. `TravelToTown` is an `EXPLORING` command issued while standing on the dungeon **entrance cell** — anywhere else it rejects `exploration.travel.not_at_entrance`, so walk the party back there first. `EnterDungeon` is how you leave town; `TravelToTown` is how you come back.
 
 **Return-trip XP is automatic.** On `TravelToTown`, the engine awards `monster_xp` + `treasure_xp` (1 gp recovered = 1 XP) automatically, emitting one `AdventureXpAwardEvent` (with the totals and per-head `share`) then a per-survivor `XpAwardedEvent`. Narrate the award from those events; never compute an XP total yourself. Because an award can cross a threshold, this is exactly where a level-up fires.
 
@@ -71,12 +71,10 @@ Advancement is **engine-automatic and eventless.** There is no `LevelUp` command
 - **Infer the advance:** when a member's `XpAwardedEvent.level_after` is higher than the level they held before the award, announce the new level. Read the **new max HP** from `observe` (or `character_sheet(character_id)` for the full new derived sheet — new THAC0, saves, spell slots — to narrate any new capability).
 - **Never fabricate the hit-die roll.** The engine rolled it and committed the result, but emits it in no event; report the outcome (the new max HP `observe` now shows), never an invented die (constitution Article III.1 / VII.3).
 - **Level-up does not restore HP.** osrlib adds the rolled HP to both max and current and heals no existing damage — a wounded character who levels is **still wounded**.
-- **One level per *award*.** The engine advances inline and clamps one level per award; there is no separate level-up step, no skill hop, and no once-per-session cap. Narrate it in place.
 
 ## Sharp edges to hold onto
 
 - **Light before anything requiring it.** `light_source` is one attempt per call (a 2-in-6 chance unless an open flame is already burning) and burns a round either way — reissue it on a miss. `search`/`pick_lock` require light; check `observe`'s party effects or just attempt and read the rejection.
-- **Stand on the entrance cell before `travel_to_town`.** It rejects `exploration.travel.not_at_entrance` otherwise — walk the party back first.
 - **Doors close behind the party.** A door you opened to pass through may need `open_door` again on the way back; don't assume it's still open.
 
 ## Saving

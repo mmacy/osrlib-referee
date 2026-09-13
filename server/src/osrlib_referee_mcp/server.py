@@ -96,13 +96,14 @@ async def execute(command: AnyCommand) -> dict[str, object]:
 
     Returns:
         `{accepted, rejections, events}`. A rejected command is in-fiction feedback,
-        not an error: it costs no time and touches no state. Each rejection and
-        event is dumped individually (never through the `CommandResult` container),
-        since `events` is base-`Event`-typed and a container dump would drop every
-        subclass field the narration reads.
+        not an error: it costs no time and touches no state. Each event carries the
+        full field set of its concrete event type.
     """
     async with _lock:
         result = _store.session.execute(command)
+    # Dump each rejection and event individually, never through the `CommandResult`
+    # container: `events` is base-`Event`-typed, and a container dump would drop every
+    # subclass field the narration reads.
     return {
         "accepted": result.accepted,
         "rejections": [rejection.model_dump(mode="json") for rejection in result.rejections],
@@ -115,14 +116,20 @@ def observe(scope: str = "current") -> dict[str, object]:
     """Read the scoped referee projection of the active session's current state.
 
     Args:
-        scope: Only `"current"` is implemented in Phase 1.
+        scope: Only `"current"` is supported.
 
     Returns:
-        The scoped projection — see
+        `{mode, legal_commands, clock_rounds, location, area, edges, party, effects,
+        flags, encounter, battle}` — see
         [`build_observation`][osrlib_referee_mcp.projection.build_observation].
-        Right after `session_new`/`session_load`, this includes a bounded event-log
-        tail to recap; on every later call in the same turn cycle, it does not —
-        events ride `execute`'s own envelope instead.
+        `area` is `None` in a corridor. In town, `area.services` carries the town's
+        service prose and each `party[]` member adds `purse` and `valuables`; every
+        member carries `level`, `xp`, and `next_level_xp`. `encounter`/`battle` are
+        present only in those modes and carry the round roster (`declarers`,
+        `front_rank`, `immobile`, `reloading`). Right after `session_new`/
+        `session_load` the projection also includes a bounded `events` tail to recap;
+        on every later call in the same turn cycle it does not — events ride
+        `execute`'s own envelope instead.
     """
     if scope != "current":
         raise ValueError(f"unsupported observe scope {scope!r}; only 'current' is implemented")
