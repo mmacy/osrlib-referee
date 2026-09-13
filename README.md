@@ -34,7 +34,7 @@ Let's play some B/X. I'd like to start a new adventure.
 
 Either way, the referee asks whether you want to create characters, start a new adventure, or continue a saved game.
 
-**Characters.** You can skip this step. Every new adventure comes with a ready-made party of three: a fighter, a cleric, and a thief. If you'd rather make your own, the referee walks you through it the B/X way: roll 3d6 in order for each ability, pick a class your scores allow, pick an alignment, buy gear, and name your character. The engine rolls 3d6 in order and nothing else, so there's no 4d6-drop-lowest and no rerolling a single bad score. If you want a reroll, you start the character over.
+**Characters.** You can skip this step. Every new adventure comes with a ready-made party of three: a fighter, a cleric, and a thief. If you'd rather make your own, the referee walks you through it the B/X way: roll 3d6 in order for each ability, pick a class your scores allow, pick an alignment, buy gear, and name your character. The engine builds characters from 3d6 in order, and the referee's rules say not to use any other method, so there's no 4d6-drop-lowest and no rerolling a single bad score. If you want a reroll, you start the character over.
 
 **Adventures.** Two come with the plugin. *The Barrow Crypt* is a short one-level crypt outside town. *The Sunken Chapel of Neth* is an original module for 3-5 characters of levels 1-2. You can also bring a published module of your own. See "Bring your own module" below.
 
@@ -66,7 +66,7 @@ The referee can run a published module, but it doesn't read the PDF during play.
 
 Compiling changes a few things:
 
-- The engine has rules for the monsters and items in the OSE SRD and nothing else. Claude plays a creature that isn't in the SRD as the closest SRD monster, using the module's own description of it, and the bundle's manifest lists every such swap.
+- The engine has rules only for the monsters and items in the OSE SRD. Claude plays a creature that isn't in the SRD as the closest SRD monster, using the module's own description of it, and the bundle's manifest lists every such swap.
 - Claude redraws the map on a square grid, so caves and odd shapes get approximated.
 - The engine has no rule for a puzzle, a custom magic item, or a creature whose special ability is the whole fight. Claude flags those while compiling and runs them by hand during play, rolling dice through the engine as needed.
 
@@ -82,7 +82,7 @@ A few things work differently from what a house-ruled table might expect:
 
 - When you level up, the new hit die goes on both your maximum and your current hit points, but damage you've already taken stays.
 - You gain at most one level per XP award.
-- Ability scores are 3d6 in order, no exceptions.
+- Ability scores are 3d6 in order.
 - You get treasure XP automatically: 1 XP per gold piece of treasure the party brings back to town.
 
 The engine has no rules for some parts of B/X: hirelings and retainers, banks, training to gain a level, paying to identify items, strongholds, domain management, and mass or ship combat. Claude can narrate them, but nothing enforces the rules.
