@@ -34,8 +34,6 @@ The **seed carries the whole roll state** — there is no scratch file. `roll` e
 
 4. **Finalize.** `chargen build` again with the equipment (`--buy …`, `--equip …`), the `--name`, and `--out <path>` to write the finished character document to a scratch file. If it returns `{"ok": false, …}` (an unaffordable basket, an illegal equip), surface the rejection's reason in plain language and re-ask — nothing was committed. On `{"ok": true, …}` deliver the HP, gold, and AC the CLI reports, verbatim.
 
-Deliver every rolled number straight from the CLI; never invent or adjust a stat (Article III.1). `AskUserQuestion` is used only for these build choices — never for anything that happens in the fiction.
-
 ## Assembling the party
 
 Build each member to its own scratch file, then assemble:
