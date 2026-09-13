@@ -2,8 +2,6 @@
 
 osrlib-referee is a Claude Code plugin that runs B/X (Basic/Expert) tabletop RPG sessions with Claude as the referee. The [`osrlib`](https://pypi.org/project/osrlib/) rules engine makes every roll and keeps all game state. Claude does what a human referee does at the table: it narrates rooms, voices NPCs, and adjudicates whatever you say your character does. The engine runs as a Model Context Protocol (MCP) server that Claude Code starts along with the plugin. `osrlib` implements the [Old-School Essentials System Reference Document](https://oldschoolessentials.necroticgnome.com/srd/), an Open Game Content restatement of the 1981 B/X rules.
 
-It's a sibling to the [`bx-referee`](https://github.com/mmacy/osr-plugins) plugin, not a replacement for it. `bx-referee` makes Claude the rules authority. osrlib-referee inverts that: the engine is the authority and Claude is the narrator.
-
 ## Requirements
 
 - Claude Code.
@@ -46,7 +44,7 @@ You can also just say what you want, like "let's play a B/X game" or "continue m
 
 A whole campaign runs end to end. You make a party, start a native or compiled adventure, explore, return to town to buy, sell, or heal, cross a level threshold (the engine advances the character and Claude narrates it), save, resume in a later session with a recap, and ask to see the roll log.
 
-Saves go to `<game-root>/adventures/<adventure-id>/<save-id>.json` and built parties to `<game-root>/parties/<party-id>.json`. `<game-root>` is `~/osr-games` by default, never the plugin cache, and you can change it with the `OSRLIB_REFEREE_GAME_ROOT` environment variable. `bx-referee` uses the same game directory.
+Saves go to `<game-root>/adventures/<adventure-id>/<save-id>.json` and built parties to `<game-root>/parties/<party-id>.json`. `<game-root>` is `~/osr-games` by default, never the plugin cache, and you can change it with the `OSRLIB_REFEREE_GAME_ROOT` environment variable.
 
 ## Making a party
 
@@ -98,7 +96,7 @@ For the architecture, the token-efficiency argument, how content gets into the g
 
 ## Status
 
-Phases 0 through 3 of the roadmap are done, so a whole campaign plays end to end today: seeded character creation and party build (`chargen`), one native adventure and an on-disk **adventure bundle** format for compiled modules, the `compile-adventure` skill with its `validate_bundle` compile gate, a compiled demo module (`adventures/sunken_chapel/`), the **town economy** (buy, sell, heal, depart) with automatic return-trip XP, **engine-automatic level-up** that Claude narrates, **save and resume with a recap**, a **roll-log audit** (`session_audit`), and a skill graph of a `referee` router over `character`, `play`, and `session` sharing one constitution. Two Phase 1 items remain follow-on work: the token comparison against `bx-referee` (see "Token measurement" below) and a manual `claude --plugin-dir .` play-through that confirms the exposed tool names live (see the "Corrections found during implementation" section of `docs/phase-1-plan.md`). The [parity scorecard](#parity-with-bx-referee) below lists every `bx-referee` feature and marks it reproduced, engine-divergent, or out of scope. The design and phased roadmap are in [`docs/spec.md`](docs/spec.md). The phase build records are in `docs/phase-0-plan.md`, [`docs/phase-1-plan.md`](docs/phase-1-plan.md), [`docs/phase-2-plan.md`](docs/phase-2-plan.md), and [`docs/phase-3-plan.md`](docs/phase-3-plan.md).
+Phases 0 through 3 of the roadmap are done, so a whole campaign plays end to end today: seeded character creation and party build (`chargen`), one native adventure and an on-disk **adventure bundle** format for compiled modules, the `compile-adventure` skill with its `validate_bundle` compile gate, a compiled demo module (`adventures/sunken_chapel/`), the **town economy** (buy, sell, heal, depart) with automatic return-trip XP, **engine-automatic level-up** that Claude narrates, **save and resume with a recap**, a **roll-log audit** (`session_audit`), and a skill graph of a `referee` router over `character`, `play`, and `session` sharing one constitution. Two Phase 1 items remain follow-on work: the token comparison against [`bx-referee`](https://github.com/mmacy/osr-plugins), an earlier plugin where Claude, not an engine, is the rules authority (see "Token measurement" below) and a manual `claude --plugin-dir .` play-through that confirms the exposed tool names live (see the "Corrections found during implementation" section of `docs/phase-1-plan.md`). The [parity scorecard](#parity-with-bx-referee) below lists every `bx-referee` feature and marks it reproduced, engine-divergent, or out of scope. The design and phased roadmap are in [`docs/spec.md`](docs/spec.md). The phase build records are in `docs/phase-0-plan.md`, [`docs/phase-1-plan.md`](docs/phase-1-plan.md), [`docs/phase-2-plan.md`](docs/phase-2-plan.md), and [`docs/phase-3-plan.md`](docs/phase-3-plan.md).
 
 ## Parity with bx-referee
 
