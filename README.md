@@ -4,26 +4,27 @@ osrlib-referee is a Claude Code plugin that runs B/X (Basic/Expert) tabletop RPG
 
 ## Requirements
 
-- Claude Code.
-- Python 3.14 or later and [`uv`](https://docs.astral.sh/uv/) on your `PATH`.
-- A one-time `uv sync --project server`. This builds `server/.venv` from the committed lockfile, so the plugin's first launch doesn't stop to resolve dependencies.
+- [Claude Code](https://code.claude.com/docs/en/overview), Anthropic's command-line coding agent. The plugin runs inside it.
+- [`uv`](https://docs.astral.sh/uv/getting-started/installation/), the Python package manager that runs the plugin's server. You don't need to install Python yourself: the server needs Python 3.14 or later, and `uv` downloads it if your machine doesn't have it.
+- A clone of this repository.
 
 ## Running locally
 
-To play, launch Claude Code from your game directory and point `--plugin-dir` at your clone of this repository:
+Launch Claude Code from any folder and point `--plugin-dir` at your clone:
 
 ```bash
-cd ~/osr-games
 claude --plugin-dir /path/to/osrlib-referee
 ```
 
-To work on the plugin instead, launch from the repository checkout:
+That loads the plugin (the skills plus the bundled `osrlib` MCP server) for that session only. Launching without `--plugin-dir` doesn't load it. The first launch takes a few seconds longer while `uv` installs the server's dependencies. After that it's fast.
+
+If you're working on the plugin, launch from the repository checkout instead:
 
 ```bash
 claude --plugin-dir .
 ```
 
-Either way, that loads the plugin (the skills plus the bundled `osrlib` MCP server) for that session only. Launching from the game directory without `--plugin-dir` doesn't load it. Claude Code starts the server with `uv run --project ${CLAUDE_PLUGIN_ROOT}/server osrlib-referee-mcp`, as `.mcp.json` specifies. That launch was checked on a clean profile (see work item 7 of `docs/phase-0-plan.md`): no `PATH` problems, no cold-start timeout even with an empty `uv` cache, and the exposed tool name is `mcp__plugin_osrlib-referee_osrlib__execute`, as expected. That check covers loading with `--plugin-dir` only. An installed plugin with a read-only plugin root is untested, and is a concern for when the plugin is distributed.
+Claude Code starts the server with `uv run --project ${CLAUDE_PLUGIN_ROOT}/server osrlib-referee-mcp`, as `.mcp.json` specifies. That launch was checked on a clean profile (see work item 7 of `docs/phase-0-plan.md`): no `PATH` problems, no cold-start timeout even with no `server/.venv` and an empty `uv` cache, and the exposed tool name is `mcp__plugin_osrlib-referee_osrlib__execute`, as expected. That check covers loading with `--plugin-dir` only. An installed plugin with a read-only plugin root is untested, and is a concern for when the plugin is distributed.
 
 ## Playing
 
@@ -44,7 +45,7 @@ You can also just say what you want, like "let's play a B/X game" or "continue m
 
 A whole campaign runs end to end. You make a party, start a native or compiled adventure, explore, return to town to buy, sell, or heal, cross a level threshold (the engine advances the character and Claude narrates it), save, resume in a later session with a recap, and ask to see the roll log.
 
-Saves go to `<game-root>/adventures/<adventure-id>/<save-id>.json` and built parties to `<game-root>/parties/<party-id>.json`. `<game-root>` is `~/osr-games` by default, never the plugin cache, and you can change it with the `OSRLIB_REFEREE_GAME_ROOT` environment variable.
+Saves go to `<game-root>/adventures/<adventure-id>/<save-id>.json` and built parties to `<game-root>/parties/<party-id>.json`. `<game-root>` is your *game directory*, the folder where the plugin keeps everything you make. It's `~/osr-games` by default, never the plugin cache, and the plugin creates it the first time it writes there. To put it somewhere else, set the `OSRLIB_REFEREE_GAME_ROOT` environment variable.
 
 ## Making a party
 
