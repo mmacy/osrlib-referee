@@ -11,7 +11,7 @@
     {
       "name": "osrlib-referee",
       "source": "./",
-      "description": "Run B/X (Basic/Expert) tabletop RPG sessions with Claude as referee and the osrlib engine owning every roll and all game state.",
+      "description": "Run B/X (Basic/Expert) tabletop RPG sessions with Claude as referee. The osrlib engine makes every roll and keeps all game state.",
       "version": "0.1.0"
     }
   ]

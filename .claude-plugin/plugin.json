@@ -1,6 +1,6 @@
 {
   "name": "osrlib-referee",
-  "description": "osrlib-referee — MCP-enabled B/X tabletop RPG referee where the deterministic osrlib engine owns every roll and all game state",
+  "description": "A B/X tabletop RPG referee for Claude Code. The osrlib engine makes every roll and keeps all game state, and Claude narrates.",
   "version": "0.1.0",
   "author": {
     "name": "Marsh Macy",
