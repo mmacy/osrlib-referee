@@ -1,0 +1,18 @@
+{
+  "name": "osrlib-referee",
+  "metadata": {
+    "description": "A B/X tabletop RPG referee for Claude Code, with the osrlib engine making every roll."
+  },
+  "owner": {
+    "name": "Marsh Macy",
+    "url": "https://github.com/mmacy"
+  },
+  "plugins": [
+    {
+      "name": "osrlib-referee",
+      "source": "./",
+      "description": "Run B/X tabletop RPG sessions with Claude as referee and the osrlib engine making every roll.",
+      "version": "0.1.0"
+    }
+  ]
+}
