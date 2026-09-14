@@ -1,40 +1,70 @@
 # osrlib-referee
 
-osrlib-referee is a Claude Code plugin that runs B/X (Basic/Expert) tabletop RPG sessions. The deterministic [`osrlib`](https://pypi.org/project/osrlib/) engine owns every roll, stat, and state transition behind an MCP server, and the LLM spends its tokens on fiction: narrating rooms, voicing NPCs, and adjudicating freeform player intent. The rules reach this project through `osrlib`, which implements the [Old-School Essentials System Reference Document](https://oldschoolessentials.necroticgnome.com/srd/), an Open Game Content restatement of the classic 1981 B/X rules.
+osrlib-referee is a Claude Code plugin that runs a solo B/X (Basic/Expert) tabletop RPG session with Claude as the referee. The [`osrlib`](https://pypi.org/project/osrlib/) engine makes every roll and keeps all game state. Claude narrates the rooms, voices the NPCs, and decides what happens when you try something the rules don't cover. Claude never invents a roll.
 
-It's a sibling to the [`bx-referee`](https://github.com/mmacy/osr-plugins) plugin, not a replacement for it. `bx-referee` makes the LLM the rules authority. `osrlib-referee` inverts that: the engine is the authority and the LLM is the narrator.
+The rules are the ones in the [Old-School Essentials System Reference Document](https://oldschoolessentials.necroticgnome.com/srd/), an Open Game Content restatement of the 1981 B/X rules. `osrlib` implements only that document, and so does the plugin.
 
-## Status
+## Requirements
 
-Phase 0 (scaffolding and the packaging spike) is done. Phase 1 (proving the loop on native content) is done, with one deferred piece: the comparative token measurement against `bx-referee`, and the manual `claude --plugin-dir .` play-through that confirms the exposed tool names live, both remain a follow-on. For those, see "Token measurement" below and the "Corrections found during implementation" section of `docs/phase-1-plan.md`. Phase 2 (the SRD-only content bridge) is done: an on-disk **adventure bundle** format and loader, discovery that unions native builders with compiled bundles, the `validate_bundle` compile gate, the `compile-adventure` skill, and a compiled demo module (`adventures/sunken_chapel/`) that plays end-to-end. Phase 3 (skill-graph parity and polish) is done: deterministic seeded **character creation** and party build (`chargen`), the **town economy** (buy/sell/heal/depart) with automatic return-trip XP, **engine-automatic level-up** narrated by inference, **save/resume with a recap**, a **roll-log audit** (`session_audit`), and a reconciled skill graph of a `referee` orchestrator routing to `character`, `play`, and `session` over one shared constitution. The [parity scorecard](#parity-with-bx-referee) below walks every `bx-referee` feature and marks it reproduced, engine-divergent, or out-of-scope. The decision-complete design and phased roadmap live in [`docs/spec.md`](docs/spec.md). The phase build records are in `docs/phase-0-plan.md`, [`docs/phase-1-plan.md`](docs/phase-1-plan.md), [`docs/phase-2-plan.md`](docs/phase-2-plan.md), and [`docs/phase-3-plan.md`](docs/phase-3-plan.md).
+- [Claude Code](https://code.claude.com/docs/en/overview).
+- [`uv`](https://docs.astral.sh/uv/) on your `PATH`. The plugin's server needs Python 3.14, and `uv` downloads it the first time it runs the server if you don't have it.
 
-## How it works
+## Running it
 
-- A stdio MCP server keeps a live `osrlib` `GameSession` in-process. Its live-session tools cover the whole loop. `execute(command)` runs one typed command from the `AnyCommand` union and returns `{accepted, rejections, events}`. `observe()` returns a scoped, referee-visibility projection of current state, never the raw save document. `character_sheet(character_id)` returns the full derived sheet (THAC0, AC, saves, movement, spell slots). `session_audit(...)` returns the recorded roll and command trajectory. `prose(area_id)` returns the authored read-aloud and referee-notes sidecar. `session_new`, `session_load`, and `session_save` handle the lifecycle, and saves persist durably to your game directory. Everything static or build-time stays **off** the play tool surface as a CLI (`chargen`, `gametool`, `bundletool`): character creation, the equipment, services, and threshold reference reads, save enumeration, and module compilation. Play sessions pay no standing per-turn schema for any of it.
-- Mechanics and state are the engine's: dice, THAC0, saves, morale, XP, encumbrance, initiative, the explored map, character creation, and advancement. Narration and freeform-intent adjudication are the LLM's, governed by the shared [constitution](skills/referee/references/constitution.md).
-- Phase 1 ships one native adventure (`server/src/osrlib_referee_mcp/content.py`): a one-level barrow crypt with a scripted delve: enter, light a torch, spring a trap, fight, flee, and return to town. An in-process golden test (`server/tests/test_delve_golden.py`) proves it by driving the real server tool functions.
-- Phase 2 adds **adventure bundles**. A compiled module is an on-disk directory (`adventure.json` + `prose.json` + `manifest.json`) that the same tools load and play like native content. The `compile-adventure` skill turns a written module into a bundle: it transcribes the map to the grid, splits read-aloud text from referee notes, and **reskins** any non-SRD creature to its nearest stock SRD template, logging each reskin in the manifest's approximation audit. A bundle adds **no custom catalog**, so every id resolves against the stock SRD. That means no engine change and no change to how the `play` skill behaves. `adventures/sunken_chapel/` is a compiled original demo module.
+From a clone of this repository:
 
-For the architecture, the token-efficiency thesis, the content-ingestion strategy, and the licensing boundaries, see the spec.
+```bash
+claude --plugin-dir .
+```
+
+Claude Code loads the plugin for that session only, and nothing is installed. You can also pass the path to the clone instead of the dot and run the command from any folder. The first time you launch it, `uv` builds the server's environment from the committed lockfile. In a test with an empty `uv` cache, that took about 12 seconds, and the server was ready before the first tool call.
+
+If you'd rather check the install before you launch, run this once. It builds the same environment ahead of time, so you see any install error before you start a session:
+
+```bash
+uv sync --project server
+```
 
 ## Playing
 
-Inside a Claude Code session with this plugin loaded (see "Running locally" below), the `referee` skill is the front door. It asks whether you want to create characters, start a new adventure, or continue a saved game, then routes to the skill that does it. The reconciled skill graph:
+Start with the `referee` skill:
 
-- **`referee`** - the thin entry point and router. It resolves the adventure you choose, routing an uncompiled module through `compile-adventure` first, then hands off. It runs no play, creation, or persistence itself.
-- **`character`** - deterministic, seeded party creation over the `chargen` CLI. The engine rolls every ability score, hit-point total, and gold piece.
-- **`play`** - the turn loop in one skill: exploration, encounters, battle, the town economy, and level-up narration.
-- **`session`** - save, resume with a recap, an optional human-readable journal, and the roll-log audit.
-- **`compile-adventure`** - the build-time module compiler, unchanged from Phase 2.
-- All four play-facing skills share one [constitution](skills/referee/references/constitution.md).
+```text
+/osrlib-referee:referee
+```
 
-The **full campaign lifecycle** runs end-to-end. Make a deterministic party, start a native or compiled adventure, delve, return to town and buy, sell, or heal, cross a level threshold (engine-automatic, narrated), save, resume in a later session with a recap, and ask to see the roll-log.
+Or describe what you want in your own words:
 
-Saves persist to `<game-root>/adventures/<adventure-id>/<save-id>.json` and built parties to `<game-root>/parties/<party-id>.json`. `<game-root>` defaults to `~/osr-games`, never the plugin cache, and you can override it with the `OSRLIB_REFEREE_GAME_ROOT` environment variable. It's the same game-directory convention `bx-referee` uses.
+```text
+Let's play some B/X. Start a new adventure.
+```
+
+Claude asks whether you want to create characters, start a new adventure, or continue a saved game, and then does what you chose. If you start an adventure without building a party, you play a pregenerated one. Two adventures ship with the plugin:
+
+- **The Barrow Crypt** (`barrow_crypt`) - a one-level crypt reached from the town of Threshold. Enter, light a torch, spring a trap, fight, flee, and return to town.
+- **The Sunken Chapel of Neth** (`sunken_chapel`) - an original one-level module for characters of levels 1-2, dedicated to the public domain and compiled into the bundle format described under [Compiling a module](#compiling-a-module).
+
+In play, say what the party does. Claude maps it to an engine command, the engine resolves it, and Claude narrates the result. The engine resolves combat, morale, saving throws, encumbrance, initiative, light, doors, and the map. When your intent has no command (a bluff, a puzzle, a trick), Claude adjudicates it in the fiction and commits the outcome to the engine. A session starts in town, and a delve ends there too. Back in town you can sell treasure, buy equipment, and pay the temple to heal. The engine awards XP for the trip when you arrive, and a character who crosses a threshold levels up in the same award.
+
+To save, ask:
+
+```text
+Save the game.
+```
+
+Claude reports the save id. To continue later, start the `referee` skill again and choose to continue a saved game. Claude recaps where you left off before play resumes. To see what the dice did, ask:
+
+```text
+Show me the roll log.
+```
+
+Mid-scene, Claude shows only what your characters could see: their own attacks and saves, XP awards, and outcomes already revealed. In town, at a scene break, or at the end of a session, ask again for the full log, including morale and reaction rolls.
+
+Saves go to `<game-root>/adventures/<adventure-id>/<save-id>.json`, and parties you build go to `<game-root>/parties/<party-id>.json`. The game root is `~/osr-games` unless you set the `OSRLIB_REFEREE_GAME_ROOT` environment variable, and the plugin creates it the first time you start an adventure or build a party.
 
 ## Making a party
 
-Character creation is a deterministic, seeded CLI kept **off** the play tool surface, the same discipline as the compiler. The `character` skill drives it conversationally, but you can run it directly:
+With the `character` skill, Claude builds a party by asking you for the choices the rules leave to the player (class, alignment, equipment, name) and running a command-line tool for every roll. You can run the tool yourself from the clone:
 
 ```bash
 uv run --project server python -m osrlib_referee_mcp.chargen roll --seed 42                       # scores + the eligible-class menu
@@ -43,7 +73,9 @@ uv run --project server python -m osrlib_referee_mcp.chargen build --seed 42 --c
 uv run --project server python -m osrlib_referee_mcp.chargen party --out heroes brakka.json wynn.json
 ```
 
-The **seed determines the whole roll state**. `roll` shows the scores the seed produces and the classes they make legal. `build` re-derives those same scores, then rolls hit points and gold once the class is known, and finalizes. The same seed and the same choices always produce a byte-identical character. A "reroll" is a fresh seed, which is what makes it auditable. Static play references come from a second CLI kept off the play surface: the equipment catalog and prices, the temple services, class XP thresholds, and the save list.
+The seed determines every roll. `roll` shows the ability scores the seed produces and the classes those scores allow. `build` produces the same scores again, then rolls hit points and gold for the class you chose, and writes the finished character. The same seed and the same choices always produce the same character, so a reroll is a new seed, and `build` records the seed in the character so anyone can reproduce it. `party` writes the finished characters to your game root as a party you can start an adventure with.
+
+A second tool prints the reference tables Claude reads during play: the equipment catalog and prices, the temple's healing services, each class's XP thresholds, and your saved games.
 
 ```bash
 uv run --project server python -m osrlib_referee_mcp.gametool catalog     # ids, names, cost_gp, lot sizes, damage
@@ -54,7 +86,15 @@ uv run --project server python -m osrlib_referee_mcp.gametool saves        # the
 
 ## Compiling a module
 
-The `compile-adventure` skill turns a written module (PDF or Markdown) into a bundle. For the correctness-critical steps it uses a deterministic helper CLI kept **off** the play tool surface, so it costs play sessions nothing:
+To play a published module, point the `referee` skill at its PDF or Markdown file:
+
+```text
+Start a new adventure from ~/modules/my-module.pdf
+```
+
+Claude compiles it once with the `compile-adventure` skill into a *bundle*, a directory of three JSON files: the adventure's map and keyed areas, the read-aloud text and referee notes for each area, and a manifest. Every session after that plays from the bundle, so a module costs one compile instead of a re-read per session, and the same module plays the same way every time.
+
+Claude does the reading and the judgment calls. For the steps where a mistake would corrupt the bundle, it runs a command-line tool:
 
 ```bash
 uv run --project server python -m osrlib_referee_mcp.bundletool validate adventures/<bundle-id>
@@ -62,74 +102,41 @@ uv run --project server python -m osrlib_referee_mcp.bundletool render-map adven
 uv run --project server python -m osrlib_referee_mcp.bundletool edge-key 3 2 east
 ```
 
-Getting the module's text is the compile's first step, and the same CLI reads it out of a [shelf-of-holding](https://github.com/mmacy/shelf-of-holding) index when one is on the machine — one Markdown text per page, already converted, instead of paging a PDF. The index is optional, and both commands are read-only: they open it through a read-only SQLite connection and never invoke the `shelf` CLI, whose commands write. Set `SHELF_DB` to read a snapshot instead of the live store.
+The compile starts from the module's text. If you have a [shelf-of-holding](https://github.com/mmacy/shelf-of-holding) index on your machine (a separate project that converts the PDFs in a folder to Markdown, one text per page, and stores them in a SQLite database), the same tool reads the pages out of it instead of paging through the PDF. Both commands open the database read-only and never run the `shelf` command, whose subcommands write. Set `SHELF_DB` to a snapshot's path to read that instead of the live database. Without an index, the commands say so and exit, and Claude compiles from whatever text you give it.
 
 ```bash
 uv run --project server python -m osrlib_referee_mcp.bundletool shelf-find "isle of dread"
 uv run --project server python -m osrlib_referee_mcp.bundletool shelf-text <sha-prefix> --pages 4-16 --out module.md
 ```
 
-A compiled bundle for an openly-licensed or original module commits to `adventures/`. A bundle for a non-open module stays private in `<game-root>/bundles/` and is never committed. For the rules on that, see the Licensing section of `AGENTS.md`. Every keyed id resolves against the stock SRD catalog, so bundles inject no custom content.
+Where the bundle goes depends on the module's license. A bundle for an openly-licensed or original module goes in the clone's `adventures/` directory and can be committed. A bundle for any other module goes in `<game-root>/bundles/` and stays there, because its read-aloud text is the publisher's. For more on that, see the Licensing section of [`AGENTS.md`](AGENTS.md).
 
-## Parity with bx-referee
+## What to expect from the engine
 
-Phase 3's definition of done is **feature parity with `bx-referee`** for native and compiled content. This scorecard walks its player-facing surface and marks each feature honestly: reproduced, delivered *better* by the engine, or an engine-limited gap. The divergences are stated, never faked in prose.
+The engine has rules only for the monsters, items, and mechanics in the SRD, and a few of its rules differ from what a referee at the table would do.
 
-### Reproduced
+- **Character creation is 3d6 in order.** The engine rolls abilities that way and no other way, and the referee's rules say not to fake a different method, so there's no 4d6-drop-lowest, no maximum hit points at first level, and no reroll of a single score. A reroll is a new seed.
+- **Leveling up doesn't heal.** The engine adds the new hit die to both maximum and current hit points, so a wounded character who levels is still wounded.
+- **One level per award.** An XP award that would cross two thresholds stops 1 XP short of the second, and the character gains one level.
+- **Treasure XP is automatic.** When the party returns to town, the engine compares what the party is carrying with what it left with and awards 1 XP per gold piece gained, plus the XP for monsters defeated, split evenly among the living members. If the whole party dies, there's no award.
+- **A compiled module is SRD-only.** At compile time, Claude replaces a creature that isn't in the SRD with the nearest SRD monster, squares a map that isn't on a 10-foot grid to one, and leaves a scene the rules can't express for live adjudication. The bundle's manifest lists every one of these changes. A module whose central monster has no SRD counterpart, where swapping in a stock monster would lose what the fight is about, can't be compiled faithfully.
+- **Not supported.** Retainers, henchmen, and mercenaries in the party. Banking and vaults. Training for levels. Paid identification of magic items. Shops and services beyond the equipment catalog and the temple. Strongholds, domain play, mass combat, and ship combat. The engine has no commands for any of these. Claude can narrate them, but no rule in the engine resolves them.
 
-| Feature | How |
-|---|---|
-| The play loop (exploration, encounters, battle) | Phases 1-2: one `play` skill. The engine's default monster-action policy resolves the enemy side. |
-| Character creation (full step flow) | Deterministic, seeded `chargen` CLI over osrlib's stepwise creation functions. The engine rolls every score, HP total, and gold piece. |
-| Adventure lifecycle (new / resume / save / recap) | `session_new` / `session_load` / `session_save`, plus `gametool saves` enumeration and the cold-`observe` recap tail. |
-| Town economy (buy / sell / heal / depart) | The `TOWN`-gated `PurchaseEquipment` / `SellTreasure` / `PurchaseHealing` / `EnterDungeon` commands, with prices from `gametool`. |
-| Level-up | Engine-automatic on any XP award. The `play` skill narrates the advance by inference from `XpAwardedEvent.level_after`. |
-| The character sheet | `character_sheet(character_id)` materializes the full derived sheet (THAC0, AC, saves, movement, spell slots) on demand. |
+## For contributors
 
-### Engine-divergent (documented)
+The design, the tool surface, the invariants, and the phased roadmap are in [`docs/spec.md`](docs/spec.md). The plan for each phase that has shipped is in [`docs/phase-0-plan.md`](docs/phase-0-plan.md), [`docs/phase-1-plan.md`](docs/phase-1-plan.md), [`docs/phase-2-plan.md`](docs/phase-2-plan.md), and [`docs/phase-3-plan.md`](docs/phase-3-plan.md), and [`docs/phase-3-manual-test.md`](docs/phase-3-manual-test.md) is the checklist for playing the full campaign lifecycle through the plugin by hand. [`AGENTS.md`](AGENTS.md) covers how work lands in this repository: the toolchain, the plan-then-implement loop, and licensing.
 
-| Feature | The divergence |
-|---|---|
-| Level-up HP | osrlib adds the rolled HP to both max and current but **heals no existing damage**, so a wounded character who levels is still wounded. `bx-referee` sets current HP to full. The `play` skill narrates osrlib's behavior. |
-| Level-up cap | One level **per award** (engine-clamped), not one per session (skill-enforced in `bx-referee`). There's no separate level-up step: the `play` skill narrates it in place. |
-| Creation house rules | osrlib rolls **3d6 in order** only. No 4d6-drop-lowest, no max-HP-at-1, no in-place single-ability reroll. A "reroll" is a fresh seed, which is auditable. Supporting other methods is a deferred engine change. |
-| Treasure XP | **Parity-plus:** the engine awards treasure XP (1 gp recovered = 1 XP) automatically on the return trip. `bx-referee` never implements it. |
-| Roll transparency | **Parity-plus:** the engine records every roll, and `session_audit` surfaces the real trajectory. `bx-referee` has no roll-log and resolves rolls silently. |
+The plugin is a stdio MCP server under `server/`, a `uv` project that keeps a live `osrlib` `GameSession` in memory, plus the skills under `skills/`. The server exposes ten tools: `session_new`, `session_load`, and `session_save` for the lifecycle, `execute` to run one typed command and return the accepted flag, rejections, and events, `observe` for a referee-visibility projection of the current state, `character_sheet` for a member's derived numbers, `session_audit` for the roll and command log, `prose` for an area's read-aloud text and referee notes, and `list_commands` and `list_adventures` for the menus. Character creation, the reference tables, and module compilation run as command-line tools instead, so their schemas are never sent to the model during play. The `referee`, `character`, `play`, and `session` skills share one [constitution](skills/referee/references/constitution.md).
 
-### Play a published module, reproduced *via compile* (the consequential divergence)
-
-`bx-referee` points at a module PDF or Markdown file and **reads it live every session**, because there the LLM is the rules authority. osrlib-referee **compiles the module once** into a deterministic bundle and then plays the bundle. It's the same "bring your own module" outcome by a different route. The trade, stated honestly:
-
-- **Gained:** determinism, replayability, and amortized cost, since you compile once instead of re-reading per visit.
-- **Paid:** an explicit compile step, and **SRD-only fidelity**. Non-SRD creatures are reskinned to their nearest SRD template, geometry is approximated to the grid, and novel beats go to the authorial escape hatch. The bundle's approximation manifest logs all of it.
-- **The real coverage gap:** a module whose central creature's *mechanics are the encounter*, and which no SRD template approximates, **cannot be faithfully compiled** until the deferred injectable-catalog engine change. For that class of module, `bx-referee`, which can narrate any creature freehand, is strictly more capable today. Naming this is the point.
-
-### Out of scope (out of scope for bx-referee too)
-
-Retainers / henchmen / mercenaries in the party, banking / vaults, training-for-levels, paid town identification, a generic shop/service catalog, and strongholds / domain / mass / ship combat. No engine command surfaces these. Each one is the authorial escape hatch or narrative-only, and `bx-referee` scopes most of them out as well.
-
-## Token measurement
-
-Phase 1's thesis is that moving mechanics and state into `osrlib` collapses the token overhead `bx-referee` spends re-deriving combat math and re-reading SRD pages, while preserving the narration budget. Proving that requires counting both sides with one tokenizer. The osrlib-referee side is fully automated and captured in-repo:
+osrlib-referee is a sibling of the [`bx-referee`](https://github.com/mmacy/osr-plugins) plugin, where the LLM is the rules authority and reads the module live every session. Here the engine is the authority. Work item F of the Phase 3 plan compares the two feature by feature. One comparison is still open: counting the tokens each plugin spends on the same delve. This script writes this project's fixed per-turn costs (the command schema, every tool's output schema, and sample `observe` payloads in town, exploring, and battle) to JSON:
 
 ```bash
 uv run --project server python server/scripts/capture_token_artifacts.py --out-dir /path/to/artifacts
 ```
 
-That dumps the exact standing-cost artifacts to JSON: the `AnyCommand` union's input schema, every tool's output schema, and representative `observe()` payloads at town, exploring, and battle. **It does not tokenize them.** No Anthropic `count_tokens` access or tokenizer library was available in the environment Phase 1 was built in, and a mismatched local tokenizer (`tiktoken`, built for OpenAI models) would produce a number that can't be honestly compared to a `bx-referee` transcript counted a different way. The recorded verdict is a follow-on: the actual per-turn and cumulative token counts, the matched `bx-referee` baseline, and the comparison. To produce it, author the baseline, capture its transcript the same way, and run both through one Anthropic `count_tokens` pass. For the full methodology, see work item 9 of `docs/phase-1-plan.md`.
+It doesn't count tokens. The comparison needs a matching `bx-referee` transcript of the same delve and one pass over both sides with the Anthropic token-counting API, and work item 9 of the Phase 1 plan describes how to do it.
 
-## Requirements
-
-- Python ≥ 3.14 and [`uv`](https://docs.astral.sh/uv/) on `PATH`.
-- One-time install: `uv sync --project server`. This builds `server/.venv` from the committed lockfile so the plugin's first launch doesn't pay a cold dependency resolve.
-
-## Running locally
-
-```bash
-claude --plugin-dir .
-```
-
-That loads the plugin (the skills plus the bundled `osrlib` MCP server) for the session only. The `.mcp.json` launch mechanism is `uv run --project ${CLAUDE_PLUGIN_ROOT}/server osrlib-referee-mcp`, confirmed on a clean profile in the Phase 0 packaging spike (see work item 7 of `docs/phase-0-plan.md`): no PATH issues, no cold-start timeout even against a fully empty `uv` cache, and the exposed tool name matches `mcp__plugin_osrlib-referee_osrlib__execute` exactly. That verdict covers the `--plugin-dir` dev-loading path only. An installed plugin with a read-only plugin root remains untested and is a distribution-phase concern.
+Claude Code launches the server with the command in `.mcp.json`: `uv run --project ${CLAUDE_PLUGIN_ROOT}/server osrlib-referee-mcp`. Work item 7 of the Phase 0 plan records the test of that launch on a clean profile: no `PATH` problems, no startup timeout with an empty `uv` cache, and the tool name Claude Code exposes matches `mcp__plugin_osrlib-referee_osrlib__execute`, which is the name the skills' `allowed-tools` lists use. That test covered `--plugin-dir` only. Nobody has tested installing the plugin from a marketplace, where the plugin root might be read-only.
 
 ## License
 
